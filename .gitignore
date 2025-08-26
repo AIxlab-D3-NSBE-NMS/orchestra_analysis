@@ -1,0 +1,8 @@
+__init__.py
+.venv
+uv.lock
+pyproject.toml
+.ipynb_checkpoints
+deprecated
+dirty_tester.py
+.idea
