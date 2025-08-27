@@ -115,18 +115,24 @@ def get_overlay_info_easyocr(video_path: Path,
         __, thresh_crop  = cv2.threshold(gray_crop, 245, 255, cv2.THRESH_BINARY)
 
         # EasyOCR returns list of (bbox, text, confidence)
-        results = reader.readtext(thresh_crop,
+        hhmmss = reader.readtext(thresh_crop[0:18,10:110],
                                   paragraph=False,
-                                  allowlist='0123456789.:Frame',
+                                  allowlist='0123456789',
                                   detail=0,
                                   batch_size=1)
+        ms = reader.readtext(thresh_crop[0:18,120:170],
+                                  paragraph=False,
+                                  allowlist='0123456789',
+                                  detail=0,
+                                  batch_size=1)
+        frame_str = reader.readtext(thresh_crop[30:,105:250],
+                             paragraph=False,
+                             allowlist='0123456789',
+                             detail=0,
+                             batch_size=1)
 
-        # Extract text with decent confidence
-        if len(results) != 2:
-            raise Exception("Error: wrong number of results in OCR")
-
-        timestamp = float(results[0])
-        frame = int(results[1].split(sep=':')[1])
+        timestamp = float(hhmmss[0] + '.' + ms[0])
+        frame = int(frame_str[0])
 
         timestamps.append(timestamp)
         frames.append(frame)
