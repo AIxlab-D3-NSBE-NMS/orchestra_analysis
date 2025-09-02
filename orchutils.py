@@ -10,7 +10,12 @@ import easyocr
 from matplotlib import pyplot as plt
 import warnings
 import h5py
-import time
+# import time
+from datetime import datetime, time, timedelta
+from typing import Union
+
+import orchutils
+
 
 def ffprobe_frame_info(input_file) -> list:
     result = subprocess.run(
@@ -202,8 +207,7 @@ def show_overlay(video_path: Path,
 
 def create_compressed_video_hdf5(video_path: Path,
                                  output_path: Path = None,
-                                 mask: tuple[int, int, int, int] = (0, 0, 365, 70),
-                                 chunk_size: int = 1000,
+                                 chunk_size: int = 100,
                                  compression_level: int = 1,
                                  stop_at: int = np.inf):
     """
@@ -218,6 +222,8 @@ def create_compressed_video_hdf5(video_path: Path,
         stop_at: Max frames to process
     """
 
+    video_path = Path(video_path) # force cast
+
     if output_path is None:
         output_path = video_path.with_suffix('.h5')
 
@@ -225,12 +231,11 @@ def create_compressed_video_hdf5(video_path: Path,
     video = cv2.VideoCapture(str(video_path))
     num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = video.get(cv2.CAP_PROP_FPS)
+    width = video.get(cv2.CAP_PROP_FRAME_WIDTH)  # float `width`
+    height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
     actual_frames = min(num_frames, stop_at) if stop_at != np.inf else num_frames
 
-    # Calculate crop dimensions
-    top, bottom, left, right = mask[1], mask[3], mask[0], mask[2]
-    height, width = bottom - top, right - left
 
     print(f"Converting video to HDF5:")
     print(f"  Input: {video_path}")
@@ -260,7 +265,6 @@ def create_compressed_video_hdf5(video_path: Path,
 
         # Store metadata
         f.attrs['video_path'] = str(video_path)
-        f.attrs['mask'] = mask
         f.attrs['fps'] = fps
         f.attrs['original_frames'] = num_frames
         f.attrs['chunk_size'] = chunk_size
@@ -277,8 +281,7 @@ def create_compressed_video_hdf5(video_path: Path,
                 break
 
             # Crop and convert to grayscale
-            crop = frame[top:bottom, left:right]
-            gray_crop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+            gray_crop = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             # Store in dataset
             dataset[i] = gray_crop
@@ -574,4 +577,84 @@ def extract_from_frames(video_path: Path,
     if verbose:
         pbar.close()
 
-    return timestamps, frames
+    # return timestamps, frames, ttl
+
+
+def hhmmss_to_datetime(time_value: Union[float, str], base_date: str = None) -> datetime:
+    """
+    Convert HHMMSS.XXX format to datetime object.
+
+    Args:
+        time_value: Time in format HHMMSS.XXX (e.g., 164423.445)
+        base_date: Base date as string 'YYYY-MM-DD'. If None, uses today's date.
+
+    Returns:
+        datetime object
+    """
+    # Convert to string and handle formatting
+    time_str = f"{float(time_value):.3f}".zfill(10)  # Ensure proper padding
+
+    # Extract components
+    hours = int(time_str[:2])
+    minutes = int(time_str[2:4])
+    seconds = int(time_str[4:6])
+    milliseconds = int(time_str[7:10])
+
+    # Convert milliseconds to microseconds
+    microseconds = milliseconds * 1000
+
+    # Create time object
+    time_obj = time(hours, minutes, seconds, microseconds)
+
+    # Create datetime with base date (default to today)
+    if base_date is None:
+        base_date = datetime.now().date()
+    else:
+        base_date = datetime.strptime(base_date, '%Y-%m-%d').date()
+
+    return datetime.combine(base_date, time_obj)
+
+
+def hhmmss_to_time_only(time_value: Union[float, str]) -> time:
+    """
+    Convert HHMMSS.XXX format to time object only.
+
+    Args:
+        time_value: Time in format HHMMSS.XXX (e.g., 164423.445)
+
+    Returns:
+        time object
+    """
+    time_str = f"{float(time_value):.3f}".zfill(10)
+
+    hours = int(time_str[:2])
+    minutes = int(time_str[2:4])
+    seconds = int(time_str[4:6])
+    milliseconds = int(time_str[7:10])
+    microseconds = milliseconds * 1000
+
+    return time(hours, minutes, seconds, microseconds)
+
+
+def hhmmss_to_timedelta(time_value: Union[float, str]) -> timedelta:
+    """
+    Convert HHMMSS.XXX format to timedelta (duration from midnight).
+
+    Args:
+        time_value: Time in format HHMMSS.XXX (e.g., 164423.445)
+
+    Returns:
+        timedelta object
+    """
+    time_str = f"{float(time_value):.3f}".zfill(10)
+
+    hours = int(time_str[:2])
+    minutes = int(time_str[2:4])
+    seconds = int(time_str[4:6])
+    milliseconds = int(time_str[7:10])
+
+    return timedelta(hours=hours, minutes=minutes, seconds=seconds, milliseconds=milliseconds)
+
+def hhmmss_to_float(time_value: Union[float, str]) -> float:
+    a = orchutils.hhmmss_to_timedelta(time_value)
+    return float(a.seconds + a.microseconds/1e6)

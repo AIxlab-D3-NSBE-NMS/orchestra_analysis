@@ -4,5 +4,5 @@ uv.lock
 pyproject.toml
 .ipynb_checkpoints
 deprecated
-dirty_tester.py
+#dirty_tester.py
 .idea
