@@ -32,6 +32,19 @@ def ffprobe_frame_info(input_file) -> list:
         # Parse the JSON output
         frames_data = json.loads(result.stdout)
 
+    terminaloutput = subprocess.run(['stat', f'{input_file}'], capture_output=True)
+    parse_idx = str(terminaloutput.stdout).find('Birth: ')
+    date_time_str = str(terminaloutput.stdout)[parse_idx+7:parse_idx+33]
+    dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S.%f")
+
+    for ii in tqdm(frames_data):
+        frame_seconds = float(ii['pts_time'])
+        dt_new = dt + timedelta(seconds=frame_seconds)
+        frame_seconds_since_midnight = (
+                    dt_new - datetime.combine(dt_new.date(), time(0))).total_seconds()
+        ii['pts_absolute'] = frame_seconds_since_midnight
+        ii['pts_timeobj']  = dt_new.time()
+
     return frames_data['frames']
 
 def get_overlay_info_easyocr(video_path: Path,
