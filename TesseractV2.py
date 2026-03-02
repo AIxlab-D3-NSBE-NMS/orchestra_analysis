@@ -8,8 +8,8 @@ import numpy as np
 # Caminho do Tesseract
 pytesseract.pytesseract.tesseract_cmd = r"C:\Users\DELL\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
 
-#video_path = "2026-01-22_17-19-18-764360.mp4"
-video_path = "2026-01-22_17-19-15-226695.mp4"
+video_path = "2026-01-22_17-19-18-764360.mp4"
+#video_path = "2026-01-22_17-19-15-226695.mp4"
 cap = cv2.VideoCapture(video_path)
 
 if not cap.isOpened():
@@ -90,7 +90,7 @@ def ocr_timestamp(img):
 def ocr_frame(img):
     processed = preprocess(img)
     processed = crop_to_content(processed)
-    padding = 10  # pixels
+    padding = 15  # pixels
     processed = cv2.copyMakeBorder(
         processed,
         padding, padding, padding, padding,
@@ -108,8 +108,8 @@ timestamps_list = []
 frame_nums_list = []
 
 
-cap.set(cv2.CAP_PROP_POS_FRAMES, 200)
-frame_index = 200
+cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Escolher frame para começar 
+frame_index = 1
 while frame_index < num_frames_to_process:
 
     ret, frame = cap.read()
@@ -119,10 +119,10 @@ while frame_index < num_frames_to_process:
     # ROI fixa
     roi = frame[0:40, 0:120]
     roi_top = roi[0:12, :]
-    roi_bottom = roi[16:28, :]
+    roi_bottom = roi[15:28, :]  #15:28 para o ecra, 16:28 para a camera 
 
-    # Guardar primeiro frame
-    if frame_index == 220:
+    # Escolher frame para visualizar em caso de debug 
+    if frame_index == 681: #220
         roi_saved = False
 
     if not roi_saved:
@@ -138,7 +138,7 @@ while frame_index < num_frames_to_process:
     ))
         cv2.imwrite(os.path.join(output_dir, "roi_bottom_processed.png"), cv2.copyMakeBorder(
         crop_to_content(preprocess(roi_bottom)),
-        10, 10, 10, 10,
+        30, 30, 30, 30,
         cv2.BORDER_CONSTANT,
         value=0))
 
