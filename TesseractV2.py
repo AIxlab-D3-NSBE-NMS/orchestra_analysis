@@ -20,7 +20,7 @@ fps = cap.get(cv2.CAP_PROP_FPS)
 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 print(f"FPS: {fps}, Total frames no vídeo: {total_frames}")
 
-num_frames_to_process = min(500, total_frames)
+num_frames_to_process = min(2000, total_frames)
 print(f"Processando os primeiros {num_frames_to_process} frames...")
 
 output_dir = "rois_detectadas"
@@ -30,6 +30,18 @@ csv_file = os.path.join(output_dir, "resultados.csv")
 with open(csv_file, mode='w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(["Frame_Index", "Timestamp", "Texto_Timestamp", "Frame_Num", "Texto_Frame"])
+
+def crop_to_content(img):
+    # Encontrar coordenadas dos pixels brancos
+    coords = cv2.findNonZero(img)
+
+    if coords is None:
+        return img  # evita erro se estiver vazio
+
+    x, y, w, h = cv2.boundingRect(coords)
+    cropped = cv2.bitwise_not(img[y:y+h, x:x+w])
+
+    return cropped
 
 # =====================================================
 # PRÉ PROCESSAMENTO
@@ -52,7 +64,7 @@ def preprocess(img):
     # THRESHOLD MANUAL (não OTSU)
     # ==============================
 
-    _, thresh = cv2.threshold(gray, 8, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, thresh = cv2.threshold(gray, 8, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # Forçar texto branco sobre fundo preto
     #thresh = cv2.bitwise_not(thresh)
@@ -63,7 +75,7 @@ def preprocess(img):
 # OCR FUNÇÕES
 # =====================================================
 def ocr_timestamp(img):
-    processed = preprocess(img)
+    processed = cv2.bitwise_not(preprocess(img))
 
     padding = 10  # pixels
     processed = cv2.copyMakeBorder(
@@ -78,6 +90,7 @@ def ocr_timestamp(img):
 
 def ocr_frame(img):
     processed = preprocess(img)
+    processed = crop_to_content(processed)
     padding = 10  # pixels
     processed = cv2.copyMakeBorder(
         processed,
@@ -95,6 +108,9 @@ roi_saved = False
 timestamps_list = []
 frame_nums_list = []
 
+
+cap.set(cv2.CAP_PROP_POS_FRAMES, 1)
+frame_index = 1
 while frame_index < num_frames_to_process:
 
     ret, frame = cap.read()
@@ -104,7 +120,7 @@ while frame_index < num_frames_to_process:
     # ROI fixa
     roi = frame[0:40, 0:120]
     roi_top = roi[0:12, :]
-    roi_bottom = roi[16:28, 0:88]
+    roi_bottom = roi[16:28, :]
 
     # Guardar primeiro frame
     if not roi_saved:
@@ -119,7 +135,7 @@ while frame_index < num_frames_to_process:
         value=0
     ))
         cv2.imwrite(os.path.join(output_dir, "roi_bottom_processed.png"), cv2.copyMakeBorder(
-        preprocess(roi_bottom),
+        crop_to_content(preprocess(roi_bottom)),
         10, 10, 10, 10,
         cv2.BORDER_CONSTANT,
         value=0))
