@@ -75,8 +75,7 @@ def preprocess(img):
 # OCR FUNÇÕES
 # =====================================================
 def ocr_timestamp(img):
-    processed = cv2.bitwise_not(preprocess(img))
-
+    processed = crop_to_content(preprocess(img))
     padding = 10  # pixels
     processed = cv2.copyMakeBorder(
         processed,
@@ -109,8 +108,8 @@ timestamps_list = []
 frame_nums_list = []
 
 
-cap.set(cv2.CAP_PROP_POS_FRAMES, 1)
-frame_index = 1
+cap.set(cv2.CAP_PROP_POS_FRAMES, 200)
+frame_index = 200
 while frame_index < num_frames_to_process:
 
     ret, frame = cap.read()
@@ -123,13 +122,16 @@ while frame_index < num_frames_to_process:
     roi_bottom = roi[16:28, :]
 
     # Guardar primeiro frame
+    if frame_index == 220:
+        roi_saved = False
+
     if not roi_saved:
         cv2.imwrite(os.path.join(output_dir, "roi_original.png"), roi)
         cv2.imwrite(os.path.join(output_dir, "roi_top_original.png"), roi_top)
         cv2.imwrite(os.path.join(output_dir, "roi_bottom_original.png"), roi_bottom)
 
         cv2.imwrite(os.path.join(output_dir, "roi_top_processed.png"), cv2.copyMakeBorder(
-        preprocess(roi_top),
+        crop_to_content(preprocess(roi_top)),
         10, 10, 10, 10,
         cv2.BORDER_CONSTANT,
         value=0
