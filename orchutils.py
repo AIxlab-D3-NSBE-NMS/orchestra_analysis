@@ -119,7 +119,6 @@ def get_overlay_info_easyocr(video_path: Path,
 
     return timestamps, frames
 
-
 def extract_timestamp_block(video_path: Path,
                             mask: tuple[int, int, int, int] = (0, 0, 365, 70),
                             stop_at: int = np.inf):
@@ -158,6 +157,46 @@ def extract_timestamp_block(video_path: Path,
         timestamp_block = timestamp_block[:frame_idx]
 
     return timestamp_block
+def extract_timestamp_and_frame_roi(video_path: Path,
+                            mask_tst: tuple[int, int, int, int] = (0,   0,  97, 16),
+                            mask_frm: tuple[int, int, int, int] = (58, 16, 110, 28),
+                            stop_at: int = np.inf):
+    video = cv2.VideoCapture(str(video_path))
+    num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    actual_frames = min(num_frames, stop_at) if stop_at != np.inf else num_frames
+
+    # Calculate crop dimensions
+    top, bottom, left, right = mask_tst[1], mask_tst[3], mask_tst[0], mask_tst[2]
+    height = bottom - top  # 70
+    width = right - left  # 365
+
+    # Pre-allocate 3D array: (frames, height, width)
+    timestamp_block = np.empty((actual_frames, height, width), dtype=np.uint8)
+
+    frame_idx = 0
+    pbar = tqdm(total=actual_frames, desc="Extracting frames")
+    while frame_idx < actual_frames:
+        ret, frame = video.read()
+        if not ret:
+            break
+
+        # Crop and convert to grayscale
+        crop = frame[top:bottom, left:right]
+        gray_crop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+
+        # Store directly in pre-allocated array
+        timestamp_block[frame_idx] = gray_crop
+        frame_idx += 1
+        pbar.update(1)
+
+    video.release()
+
+    # Trim if we stopped early
+    if frame_idx < actual_frames:
+        timestamp_block = timestamp_block[:frame_idx]
+
+    return timestamp_block
+
 def estimate_block_memory(num_frames, height=70, width=365):
     bytes_needed = num_frames * height * width  # uint8 = 1 byte per pixel
     gb_needed = bytes_needed / (1024**3)
@@ -671,3 +710,19 @@ def hhmmss_to_timedelta(time_value: Union[float, str]) -> timedelta:
 def hhmmss_to_float(time_value: Union[float, str]) -> float:
     a = orchutils.hhmmss_to_timedelta(time_value)
     return float(a.seconds + a.microseconds/1e6)
+
+def count_frames(video_path):
+    """
+    Generator that safely reads frames from a corrupted video.
+    Yields frames until corruption is detected.
+    """
+    cap = cv2.VideoCapture(video_path)
+    frame_count = 0
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame_count += 1
+    cap.release()
+    return frame_count

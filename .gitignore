@@ -6,3 +6,4 @@ pyproject.toml
 deprecated
 #dirty_tester.py
 .idea
+__pycache__/
