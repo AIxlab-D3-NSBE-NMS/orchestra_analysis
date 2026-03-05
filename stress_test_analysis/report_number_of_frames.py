@@ -12,6 +12,7 @@ corrupted = '/media/labadmin/Windows/Users/diogo/aixlab/data/stress_test/aixlab-
 preserved = '/media/labadmin/Windows/Users/diogo/aixlab/data/stress_test/aixlab-10/owl/2026-01-22_17-19-15-617741.mp4'
 
 orchutils.count_frames(corrupted)
-orchutils.count_frames(preserved)
+
+
 
 breakpoint()
