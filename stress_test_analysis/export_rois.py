@@ -1,15 +1,12 @@
 import os
 from pathlib import Path
-from sre_parse import parse
 import cv2
 import numpy as np
 from tqdm import tqdm
 import argparse
-from pathlib import Path
-import pdb
+import h5py
 
 def extract_and_save_metadata(video_dir):
-
     # Define ROI dimensions
     roi_height = 28
     roi_width = 148
@@ -25,7 +22,7 @@ def extract_and_save_metadata(video_dir):
 
     for video_path in tqdm(video_files, desc='videos'):
         # Extract the base name without extension and add 'metadata' prefix
-        output_file = Path(video_path).parent / Path('metadata_' + Path(video_path).stem + '.npy')
+        output_file = Path(video_path).parent / Path('metadata_' + Path(video_path).stem + '.hdf5')
 
         # Read the video and extract ROI
         cap = cv2.VideoCapture(video_path)
@@ -33,28 +30,26 @@ def extract_and_save_metadata(video_dir):
             print(f"Error: Could not open video {video_path}")
             continue
 
+        with h5py.File(output_file, 'w') as f:
+            dataset = f.create_dataset('roi_frames', (0, roi_height, roi_width), maxshape=(None, roi_height, roi_width), dtype=np.uint8)
 
-        frames = []
-        pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+            pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
 
-            # Extract ROI
-            roi = frame[:roi_height, :roi_width]
+                # Extract ROI
+                roi = frame[:roi_height, :roi_width]
+                channel = roi[:, :, 0]  # Select the first channel (e.g., R for RGB)
 
-            # Append frame to list (or add directly to numpy array)
-            frames.append(roi)
-            pbar.update(1)
+                # Append the channel to the dataset
+                dataset.resize(dataset.shape[0] + 1, axis=0)
+                dataset[-1] = channel
 
-        # Convert list of ROIs to a NumPy 3D array
-        metadata_array = np.array(frames)
+                pbar.update(1)
 
-        # Save the 3D NumPy array to file
-        print('saving metadata file...')
-        np.save(output_file, metadata_array)
-
+        print('saved metadata file...')
         print(f"Saved metadata for {video_path} to {output_file}")
 
 if __name__ == "__main__":
