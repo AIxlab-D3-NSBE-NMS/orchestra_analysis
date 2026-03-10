@@ -16,31 +16,32 @@ def open_and_input(row, basepath):
     input(f"Press Enter to continue with {video_path}...")
 
     # Ask questions after the video has been opened
-    status_website = input(f"Status do website: ")
-    login = input(f"Login : ")
-    submitted = input(f"Conseguiu submeter: ")
-    tentativas = input(f"Tentativas: ")
-    qualtrics = input(f"Qualtrics: ")
-    comments = input(f"Addicional comments: ")
+    status_website =    input(f"Status do website: ")
+    login =             input(f"Login : ")
+    submitted =         input(f"Conseguiu submeter: ")
+    tentativas =        input(f"Tentativas: ")
+    qualtrics =         input(f"Qualtrics: ")
+    comments =          input(f"Addicional comments: ")
 
     # Create a new row with updated values
     updated_row = {
-        'filepath': row['filepath'],
-        'readable_date': row['readable_date'],
-        'readable_time': row['readable_time'],
-        'status_website': status_website,
-        'login': login,
-        'submitted': submitted,
-        'tentativas': tentativas,
-        'qualtrics': qualtrics
+        'filepath':         row['filepath'],
+        'readable_date':    row['readable_date'],
+        'readable_time':    row['readable_time'],
+        'status_website':   status_website,
+        'login':            login,
+        'submitted':        submitted,
+        'tentativas':       tentativas,
+        'qualtrics':        qualtrics,
+        'comments':         comments
     }
 
     return updated_row
 
 def main():
 
-    file_path = '/home/labadmin/aixlab/code/orchestra_analysis/prr/cyclesix.csv'
-    basepath = Path('/media/labadmin/Windows/Users/diogo/aixlab/data/raw/')
+    file_path =     '/home/labadmin/aixlab/code/orchestra_analysis/prr/cyclesix.csv'
+    basepath =      Path('/media/labadmin/Windows/Users/diogo/aixlab/data/raw/')
 
     # Load the CSV file into a DataFrame
     df = pd.read_csv(file_path, sep='\t', dtype='str')
@@ -53,7 +54,6 @@ def main():
             updated_row = open_and_input(row, basepath)
 
             # Create a new DataFrame with the updated rows
-            breakpoint()
             df.iloc[idx] = updated_row
 
             # Save the updated DataFrame to the same file
