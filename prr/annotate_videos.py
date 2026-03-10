@@ -38,26 +38,28 @@ def open_and_input(row, basepath):
     return updated_row
 
 def main():
-    file_path = '/home/labadmin/aixlab/code/orchestra_analysis/prr/cyclesix_week1_updated.csv'
+
+    file_path = '/home/labadmin/aixlab/code/orchestra_analysis/prr/cyclesix.csv'
     basepath = Path('/media/labadmin/Windows/Users/diogo/aixlab/data/raw/')
 
     # Load the CSV file into a DataFrame
-    df = pd.read_csv(file_path, sep='\t')
-
-    updated_rows = []
+    df = pd.read_csv(file_path, sep='\t', dtype='str')
 
     for idx, row in df.iterrows():
         if pd.isna(row['status_website']):
+
             print(f"Processing video {idx} of {len(df) - 1}")
 
             updated_row = open_and_input(row, basepath)
-            updated_rows.append(updated_row)
 
             # Create a new DataFrame with the updated rows
-            updated_df = pd.DataFrame(updated_rows)
+            breakpoint()
+            df.iloc[idx] = updated_row
 
             # Save the updated DataFrame to the same file
-            updated_df.to_csv(file_path, sep='\t', index=False)
+            df.to_csv(file_path, sep='\t', index=False)
+        else:
+            print(row['status_website'])
 
 if __name__ == "__main__":
     main()

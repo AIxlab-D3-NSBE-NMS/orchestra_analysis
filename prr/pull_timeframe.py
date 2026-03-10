@@ -26,4 +26,4 @@ for ii in range(data.shape[0]):
 data['readable_date'] = readable_dates
 data['readable_time'] = readable_times
 
-data.to_csv('cyclesix_week1_updated.csv', sep='\t', index=False)
+data.to_csv('cyclesix_empty.csv', sep='\t', index=False)

@@ -1,7 +1,133 @@
 filepath	readable_date	readable_time	status_website	login	submitted	tentativas	qualtrics
-./aixlab-01/cyclesix/cyclesix_screen_20260202_141735.mp4	02.02.2026	14h17m35s	online	001	nan	0	1
-./aixlab-01/cyclesix/cyclesix_screen_20260202_142713.mp4	02.02.2026	14h27m13s	online	001	nan	0	sim
-./aixlab-01/cyclesix/cyclesix_screen_20260202_164227.mp4	02.02.2026	16h42m27s	online	44	1	1	1
-./aixlab-01/cyclesix/cyclesix_screen_20260203_110600.mp4	03.02.2026	11h06m00s	online	54	0	3	1
-./aixlab-01/cyclesix/cyclesix_screen_20260203_132149.mp4	03.02.2026	13h21m49s	online	17	0	4	1
-./aixlab-01/cyclesix/cyclesix_screen_20260203_150823.mp4	03.02.2026	15h08m23s	online	59	0	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260204_095646.mp4	04.02.2026	09h56m46s	online	8	0	4	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260204_125610.mp4	04.02.2026	12h56m10s	online	78	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260204_141814.mp4	04.02.2026	14h18m14s	online	84	0	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260204_164059.mp4	04.02.2026	16h40m59s	online	68	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_113637.mp4	05.02.2026	11h36m37s	online	102	0	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	106	0	4	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260206_140707.mp4	06.02.2026	14h07m07s	online	105	0	6	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260206_145703.mp4	06.02.2026	14h57m03s	online	116	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260209_112114.mp4	09.02.2026	11h21m14s	offline 502		0		0
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260204_164059.mp4	04.02.2026	16h40m59s	online	68	0	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_113637.mp4	05.02.2026	11h36m37s	online	102	0	5	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	106	0	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260206_140707.mp4	06.02.2026	14h07m07s	online	105	0	5	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260206_145703.mp4	06.02.2026	14h57m03s	online	116	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260209_112114.mp4	09.02.2026	11h21m14s	offline 502	0	0	0	0
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260202_145416.mp4	02.02.2026	14h54m16s	online	52	0	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260202_165451.mp4	02.02.2026	16h54m51s	online	53	1	5	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260203_095108.mp4	03.02.2026	09h51m08s	online	55	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260203_131710.mp4	03.02.2026	13h17m10s	online	30	0	5	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260203_144831.mp4	03.02.2026	14h48m31s	online	9	0	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260204_100355.mp4	04.02.2026	10h03m55s	online	51	0	2	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260204_112230.mp4	04.02.2026	11h22m30s	online	40	0	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260204_141559.mp4	04.02.2026	14h15m59s	online	58	0	2	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260205_101327.mp4	05.02.2026	10h13m27s	online	95	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260205_131420.mp4	05.02.2026	13h14m20s	online	114	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260210_110839.mp4	10.02.2026	11h08m39s	online	138	1	2	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260210_133718.mp4	10.02.2026	13h37m18s	online	110	1	3	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260210_150718.mp4	10.02.2026	15h07m18s	online	133	1	2	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-04/cyclesix/cyclesix_screen_20260211_122547.mp4	11.02.2026	12h25m47s	online	130	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260202_171257.mp4	02.02.2026	17h12m57s	online	35	1	1	1
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260203_111012.mp4	03.02.2026	11h10m12s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260203_132559.mp4	03.02.2026	13h25m59s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260203_145700.mp4	03.02.2026	14h57m00s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_095843.mp4	04.02.2026	09h58m43s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_113640.mp4	04.02.2026	11h36m40s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_124329.mp4	04.02.2026	12h43m29s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_141646.mp4	04.02.2026	14h16m46s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_163807.mp4	04.02.2026	16h38m07s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260205_145326.mp4	05.02.2026	14h53m26s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260206_140716.mp4	06.02.2026	14h07m16s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260209_112111.mp4	09.02.2026	11h21m11s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260202_151716.mp4	02.02.2026	15h17m16s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260202_164756.mp4	02.02.2026	16h47m56s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_095158.mp4	03.02.2026	09h51m58s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_113601.mp4	03.02.2026	11h36m01s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_133450.mp4	03.02.2026	13h34m50s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_145945.mp4	03.02.2026	14h59m45s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260204_095804.mp4	04.02.2026	09h58m04s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260204_113713.mp4	04.02.2026	11h37m13s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260204_130444.mp4	04.02.2026	13h04m44s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260204_142013.mp4	04.02.2026	14h20m13s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260204_164520.mp4	04.02.2026	16h45m20s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260206_135318.mp4	06.02.2026	13h53m18s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260206_145436.mp4	06.02.2026	14h54m36s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260210_110826.mp4	10.02.2026	11h08m26s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260210_150338.mp4	10.02.2026	15h03m38s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260211_104138.mp4	11.02.2026	10h41m38s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260213_122236.mp4	13.02.2026	12h22m36s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260203_095626.mp4	03.02.2026	09h56m26s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260203_132523.mp4	03.02.2026	13h25m23s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260203_145929.mp4	03.02.2026	14h59m29s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260203_161239.mp4	03.02.2026	16h12m39s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_110840.mp4	04.02.2026	11h08m40s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_130418.mp4	04.02.2026	13h04m18s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_141008.mp4	04.02.2026	14h10m08s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_161454.mp4	04.02.2026	16h14m54s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260205_102245.mp4	05.02.2026	10h22m45s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260205_113520.mp4	05.02.2026	11h35m20s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260212_114854.mp4	12.02.2026	11h48m54s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260202_144714.mp4	02.02.2026	14h47m14s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260202_160116.mp4	02.02.2026	16h01m16s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_111028.mp4	03.02.2026	11h10m28s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_144850.mp4	03.02.2026	14h48m50s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_160459.mp4	03.02.2026	16h04m59s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_094154.mp4	04.02.2026	09h41m54s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_112240.mp4	04.02.2026	11h22m40s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_125320.mp4	04.02.2026	12h53m20s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_162952.mp4	04.02.2026	16h29m52s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_102851.mp4	05.02.2026	10h28m51s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_113045.mp4	05.02.2026	11h30m45s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_140719.mp4	06.02.2026	14h07m19s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_145722.mp4	06.02.2026	14h57m22s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_152343.mp4	06.02.2026	15h23m43s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260202_162022.mp4	02.02.2026	16h20m22s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260203_100044.mp4	03.02.2026	10h00m44s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260203_133003.mp4	03.02.2026	13h30m03s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260203_162339.mp4	03.02.2026	16h23m39s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_095431.mp4	04.02.2026	09h54m31s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_112922.mp4	04.02.2026	11h29m22s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_141841.mp4	04.02.2026	14h18m41s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_163941.mp4	04.02.2026	16h39m41s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_102444.mp4	05.02.2026	10h24m44s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_113948.mp4	05.02.2026	11h39m48s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260206_135902.mp4	06.02.2026	13h59m02s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260209_112057.mp4	09.02.2026	11h20m57s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260210_110820.mp4	10.02.2026	11h08m20s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260210_150345.mp4	10.02.2026	15h03m45s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260213_122700.mp4	13.02.2026	12h27m00s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260202_144309.mp4	02.02.2026	14h43m09s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260203_093618.mp4	03.02.2026	09h36m18s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260203_132506.mp4	03.02.2026	13h25m06s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260203_144217.mp4	03.02.2026	14h42m17s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260204_112113.mp4	04.02.2026	11h21m13s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260204_141133.mp4	04.02.2026	14h11m33s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260205_101527.mp4	05.02.2026	10h15m27s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260205_114356.mp4	05.02.2026	11h43m56s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260206_134354.mp4	06.02.2026	13h43m54s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260206_145424.mp4	06.02.2026	14h54m24s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260209_112045.mp4	09.02.2026	11h20m45s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260210_112716.mp4	10.02.2026	11h27m16s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260202_145603.mp4	02.02.2026	14h56m03s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260202_164011.mp4	02.02.2026	16h40m11s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260203_132815.mp4	03.02.2026	13h28m15s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260203_150725.mp4	03.02.2026	15h07m25s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260204_162528.mp4	04.02.2026	16h25m28s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260205_114110.mp4	05.02.2026	11h41m10s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260206_140655.mp4	06.02.2026	14h06m55s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260202_162846.mp4	02.02.2026	16h28m46s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_113445.mp4	03.02.2026	11h34m45s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_133532.mp4	03.02.2026	13h35m32s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_150108.mp4	03.02.2026	15h01m08s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_155331.mp4	03.02.2026	15h53m31s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260204_141728.mp4	04.02.2026	14h17m28s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260204_160547.mp4	04.02.2026	16h05m47s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260205_114126.mp4	05.02.2026	11h41m26s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s					
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260206_140647.mp4	06.02.2026	14h06m47s					
