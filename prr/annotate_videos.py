@@ -10,7 +10,7 @@ def open_and_input(row, basepath):
     vlc_command = ['vlc', str(video_path)]
 
     # Start VLC as a subprocess
-    subprocess.Popen(vlc_command, stdout=DEVNULL, stderr=DEVNULL)
+    vlcproc = subprocess.Popen(vlc_command, stdout=DEVNULL, stderr=DEVNULL)
 
     # Wait for the user to finish viewing the video before proceeding
     input(f"Press Enter to continue with {video_path}...")
@@ -22,6 +22,8 @@ def open_and_input(row, basepath):
     tentativas =        input(f"Tentativas: ")
     qualtrics =         input(f"Qualtrics: ")
     comments =          input(f"Addicional comments: ")
+
+    vlcproc.terminate()
 
     # Create a new row with updated values
     updated_row = {
