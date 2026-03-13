@@ -7,7 +7,7 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	106	0	4	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260206_140707.mp4	06.02.2026	14h07m07s	online	105	0	6	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260206_145703.mp4	06.02.2026	14h57m03s	online	116	1	1	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260209_112114.mp4	09.02.2026	11h21m14s	offline 502		0		0	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260209_112114.mp4	09.02.2026	11h21m14s	offline 502	0	0	0	0	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260204_164059.mp4	04.02.2026	16h40m59s	online	68	0	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_113637.mp4	05.02.2026	11h36m37s	online	102	0	5	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-01/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	106	0	3	1	
@@ -33,8 +33,8 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260203_132559.mp4	03.02.2026	13h25m59s	online	57	0	4	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260203_145700.mp4	03.02.2026	14h57m00s	online	77	0	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_095843.mp4	04.02.2026	09h58m43s	online	47	0	8	1	filled out cyclesiz twice
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_113640.mp4	04.02.2026	11h36m40s	online	0005	0	3	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_124329.mp4	04.02.2026	12h43m29s	46	46	0	5	1	login 52 didnt work, switc46
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_113640.mp4	04.02.2026	11h36m40s	online	5	0	3	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_124329.mp4	04.02.2026	12h43m29s	online	46	0	5	1	login 52 didnt work, switc46
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_141646.mp4	04.02.2026	14h16m46s	online	82	0	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260204_163807.mp4	04.02.2026	16h38m07s	online	75	1	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260205_145326.mp4	05.02.2026	14h53m26s	online	111	0	3	1	
@@ -42,8 +42,8 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-05/cyclesix/cyclesix_screen_20260209_112111.mp4	09.02.2026	11h21m11s	offline	0	0	0	0	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260202_151716.mp4	02.02.2026	15h17m16s	online	28	1	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260202_164756.mp4	02.02.2026	16h47m56s	online	18	1	3	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_095158.mp4	03.02.2026	09h51m58s	onlinr	60	1	1	1	pdf results
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_113601.mp4	03.02.2026	11h36m01s	0	0	0	0	0	screen recording corrupted
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_095158.mp4	03.02.2026	09h51m58s	online	60	1	1	1	pdf results
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_113601.mp4	03.02.2026	11h36m01s	online	0	0	0	0	screen recording corrupted
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_133450.mp4	03.02.2026	13h34m50s	online	65	0	1	1	wrong match name in qualtrics
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260203_145945.mp4	03.02.2026	14h59m45s	online	19	0	1	1	wrong match name in qualtrics
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-06/cyclesix/cyclesix_screen_20260204_095804.mp4	04.02.2026	09h58m04s	online	0	0	0	1	did everything wrong, went straight to qualtrics, discard entry
@@ -62,7 +62,7 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260203_145929.mp4	03.02.2026	14h59m29s	online	20	0	2	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260203_161239.mp4	03.02.2026	16h12m39s	online	24	0	1	1	used chatgpt for estimates
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_110840.mp4	04.02.2026	11h08m40s	online	64	0	4	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_130418.mp4	04.02.2026	13h04m18s	online	81 after 131 didn't work	1	1	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_130418.mp4	04.02.2026	13h04m18s	online	81	1	1	1	Login 81 after 131 didn’t work
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_141008.mp4	04.02.2026	14h10m08s	online	37	0	2	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260204_161454.mp4	04.02.2026	16h14m54s	online	7	0	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260205_102245.mp4	05.02.2026	10h22m45s	online	89	1	1	1	
@@ -70,18 +70,18 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	121	0	3	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-08/cyclesix/cyclesix_screen_20260212_114854.mp4	12.02.2026	11h48m54s	offline	0	0	0	0	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260202_144714.mp4	02.02.2026	14h47m14s	online	29	1	3	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260202_160116.mp4	02.02.2026	16h01m16s	62	62	1	1	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_111028.mp4	03.02.2026	11h10m28s	online	0003	1	3	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260202_160116.mp4	02.02.2026	16h01m16s	online	62	1	1	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_111028.mp4	03.02.2026	11h10m28s	online	3	1	3	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_144850.mp4	03.02.2026	14h48m50s	online	27	0	4	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260203_160459.mp4	03.02.2026	16h04m59s	online	70	0	2	1	filled out cyclesix calc twice after submit failed
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_094154.mp4	04.02.2026	09h41m54s	online	86	0	5	1	filled out cyclesix calc twice after submit failed
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_112240.mp4	04.02.2026	11h22m40s	online	6	0	1	1	used chatgpt for estimates
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_125320.mp4	04.02.2026	12h53m20s	online	15	1	2	do not use, filled out before cyclesix	do not use, filled out qualtrics before cyclesix
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_162952.mp4	04.02.2026	16h29m52s	online	85 after 45 didn't work	1	1	1	login 85 attributed after 45 didn't work
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_125320.mp4	04.02.2026	12h53m20s	online	15	1	2	1	do not use, filled out qualtrics before cyclesix
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260204_162952.mp4	04.02.2026	16h29m52s	online	85	1	1	1	login 85 attributed after 45 didn't work
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_102851.mp4	05.02.2026	10h28m51s	online	93	1	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_113045.mp4	05.02.2026	11h30m45s	online	94	1	1	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	109	"	1"	1	1	viewer results in pdf only
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_140719.mp4	06.02.2026	14h07m19s	online	0	0	0	exclude	filled qualtrics before cyclesix
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260205_145323.mp4	05.02.2026	14h53m23s	online	109	1	1	1	viewer results in pdf only
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_140719.mp4	06.02.2026	14h07m19s	online	0	0	0	1	Exclude, filled qualtrics before cyclesix
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_145722.mp4	06.02.2026	14h57m22s	online	117	1	2	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-10/cyclesix/cyclesix_screen_20260206_152343.mp4	06.02.2026	15h23m43s	online	115	1	2	1	filled out qualtrics before and then after doing the cyclesix calc
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260202_162022.mp4	02.02.2026	16h20m22s	online	16	1	1	1	
@@ -91,20 +91,20 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_095431.mp4	04.02.2026	09h54m31s	online	80	0	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_112922.mp4	04.02.2026	11h29m22s	online	39	0	2	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_141841.mp4	04.02.2026	14h18m41s	online	10	0	1	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_163941.mp4	04.02.2026	16h39m41s	72	72	1	1	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260204_163941.mp4	04.02.2026	16h39m41s	online	72	1	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_102444.mp4	05.02.2026	10h24m44s	online	99	1	3	1	submitted only later duri
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_113948.mp4	05.02.2026	11h39m48s	online	100	0	1	1	match number inserted ended in 9999
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s	online	113	1	2	113	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260206_135902.mp4	06.02.2026	13h59m02s	0	0	0	0	0	corruped screen rec
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s	online	113	1	2	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260206_135902.mp4	06.02.2026	13h59m02s	online	0	0	0	0	corruped screen rec
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260209_112057.mp4	09.02.2026	11h20m57s	offline	0	0	0	0	discard
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260210_110820.mp4	10.02.2026	11h08m20s	online	140	1	2	1	did cyclesix twice
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260210_150345.mp4	10.02.2026	15h03m45s	online	123	1	2	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-13/cyclesix/cyclesix_screen_20260213_122700.mp4	13.02.2026	12h27m00s	online	135	1	1	1	too fast and they didn't bother looking at the calculator results
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260202_144309.mp4	02.02.2026	14h43m09s	42	42	1	1	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260202_144309.mp4	02.02.2026	14h43m09s	online	42	1	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260203_093618.mp4	03.02.2026	09h36m18s	online	23	1	1	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260203_132506.mp4	03.02.2026	13h25m06s	online	48	0	4	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260203_144217.mp4	03.02.2026	14h42m17s	online	67	0	2	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260204_112113.mp4	04.02.2026	11h21m13s	76	76	0	0	1	exclude, didn't fill out calc cyclesix properly
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260204_112113.mp4	04.02.2026	11h21m13s	online	76	0	0	1	exclude, didn't fill out calc cyclesix properly
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260204_141133.mp4	04.02.2026	14h11m33s	online	73	0	2	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260205_101527.mp4	05.02.2026	10h15m27s	online	88	0	2	0	not sure, the video ends before qualtrics submission
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-14/cyclesix/cyclesix_screen_20260205_114356.mp4	05.02.2026	11h43m56s	online	92	0	3	1	a little too quick
@@ -121,11 +121,11 @@ filepath	readable_date	readable_time	status_website	login	submitted	tentativas	q
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260205_114110.mp4	05.02.2026	11h41m10s	online	96	0	0	1	exclude. they didn't fill out half the fields in cyclesix
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260205_145324.mp4	05.02.2026	14h53m24s	online	108	1	1	1	exclude. didn't read the ampara, filled out thin 5 minutes with half the metrics missing
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-15/cyclesix/cyclesix_screen_20260206_140655.mp4	06.02.2026	14h06m55s	online	120	1	1	1	
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260202_162846.mp4	02.02.2026	16h28m46s	online	00001	1	7	1	repeated cyclesix after submit failed 5 times
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_113445.mp4	03.02.2026	11h34m45s	online	0002	0	4	1	
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260202_162846.mp4	02.02.2026	16h28m46s	online	1	1	7	1	repeated cyclesix after submit failed 5 times
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_113445.mp4	03.02.2026	11h34m45s	online	2	0	4	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_133532.mp4	03.02.2026	13h35m32s	online	71	0	3	0	exclude, qualtrics missing
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_150108.mp4	03.02.2026	15h01m08s	online	49	0	3	even repeating, cyclesix was filled out in 5exclude since half the values from the ampara description are missing	exclude
-/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_155331.mp4	03.02.2026	15h53m31s	online	50	0	"	2"	1	a bit too quick
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_150108.mp4	03.02.2026	15h01m08s	online	49	0	3	1	Exclude, even repeating, cyclesix was filled out in 5exclude since half the values from the ampara description are missing
+/media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260203_155331.mp4	03.02.2026	15h53m31s	online	50	0	2	1	a bit too quick
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260204_141728.mp4	04.02.2026	14h17m28s	online	63	0	4	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260204_160547.mp4	04.02.2026	16h05m47s	online	14	1	3	1	
 /media/labadmin/Windows/Users/diogo/aixlab/data/raw/aixlab-19/cyclesix/cyclesix_screen_20260205_114126.mp4	05.02.2026	11h41m26s	online	90	0	4	1	
