@@ -8,6 +8,8 @@ cropped-ROI support and fully annotated image / video output.
 import cv2
 from deepface import DeepFace
 import numpy as np
+import pandas as pd
+import os
 from tqdm import tqdm
 from PIL import Image
 
@@ -407,14 +409,208 @@ def annotate_video(
     writer.release()
 
 
+def process_video_with_timeseries(
+    input_path: str,
+    output_video_path: str,
+    output_csv_path: str,
+    crop: tuple | None = None,
+    frame_skip: int = 1,
+    detector_backend: str = "retinaface",
+) -> None:
+    """Detect emotions on every frame_skip-th frame of a video and export annotated video and CSV timeseries.
+
+    Writes an annotated MP4 video and a CSV file containing per-frame emotion data.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to the source video file.
+    output_video_path : str
+        Destination path for the annotated video (mp4v codec).
+    output_csv_path : str
+        Destination path for the CSV file with emotion timeseries data.
+    crop : tuple or None, optional
+        Optional ``(x, y, w, h)`` crop region passed to
+        :func:`get_emotions_from_frame` on every processed frame.
+    frame_skip : int, optional
+        Process every *frame_skip*-th frame.  Must be >= 1.
+        Defaults to 1 (every frame is processed).
+    detector_backend : str, optional
+        DeepFace detector backend.  Defaults to ``'retinaface'``.
+    """
+    cap = cv2.VideoCapture(input_path)
+    if not cap.isOpened():
+        raise IOError(f"Cannot open video: {input_path}")
+
+    fps: float = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    total_frames: int = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    width: int = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height: int = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    # Collect emotion data per frame
+    emotion_data = []
+    last_annotated: np.ndarray | None = None
+    frame_index: int = 0
+
+    with tqdm(total=total_frames, desc="Processing video", unit="frame") as pbar:
+        while True:
+            ret, frame_bgr = cap.read()
+            if not ret:
+                break
+
+            # Calculate timestamp in milliseconds
+            timestamp_ms = (frame_index / fps) * 1000.0 if fps > 0 else 0.0
+
+            if frame_index % frame_skip == 0:
+                # DeepFace expects RGB; cv2 gives BGR - convert at the boundary.
+                frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+                try:
+                    results = get_emotions_from_frame(
+                        frame_rgb,
+                        crop=crop,
+                        detector_backend=detector_backend,
+                    )
+                    last_annotated = annotate_image(frame_rgb, results, crop=crop)
+
+                    # Extract emotion data from first face (if any detected)
+                    if results:
+                        face = results[0]
+                        dominant_emotion = face.get("dominant_emotion", "unknown")
+                        emotions_dict = face.get("emotion", {})
+                    else:
+                        dominant_emotion = "no_face"
+                        emotions_dict = {
+                            "angry": 0.0,
+                            "disgust": 0.0,
+                            "fear": 0.0,
+                            "happy": 0.0,
+                            "neutral": 0.0,
+                            "sad": 0.0,
+                            "surprise": 0.0,
+                        }
+
+                except Exception as exc:
+                    print(f"[Frame {frame_index}] Detection error: {exc}")
+                    last_annotated = frame_bgr.copy()
+                    dominant_emotion = "error"
+                    emotions_dict = {
+                        "angry": 0.0,
+                        "disgust": 0.0,
+                        "fear": 0.0,
+                        "happy": 0.0,
+                        "neutral": 0.0,
+                        "sad": 0.0,
+                        "surprise": 0.0,
+                    }
+            else:
+                # For skipped frames, use the last recorded emotion data
+                if emotion_data:
+                    last_row = emotion_data[-1]
+                    dominant_emotion = last_row["dominant_emotion"]
+                    emotions_dict = {
+                        "angry": last_row["angry"],
+                        "disgust": last_row["disgust"],
+                        "fear": last_row["fear"],
+                        "happy": last_row["happy"],
+                        "neutral": last_row["neutral"],
+                        "sad": last_row["sad"],
+                        "surprise": last_row["surprise"],
+                    }
+                else:
+                    dominant_emotion = "no_face"
+                    emotions_dict = {
+                        "angry": 0.0,
+                        "disgust": 0.0,
+                        "fear": 0.0,
+                        "happy": 0.0,
+                        "neutral": 0.0,
+                        "sad": 0.0,
+                        "surprise": 0.0,
+                    }
+
+            # Record emotion data
+            row_data = {
+                "frame_index": frame_index,
+                "timestamp_ms": timestamp_ms,
+                "dominant_emotion": dominant_emotion,
+            }
+            row_data.update(emotions_dict)
+            emotion_data.append(row_data)
+
+            writer.write(last_annotated if last_annotated is not None else frame_bgr)
+            frame_index += 1
+            pbar.update(1)
+
+    cap.release()
+    writer.release()
+
+    # Write CSV file
+    df = pd.DataFrame(emotion_data)
+    df.to_csv(output_csv_path, index=False)
+
+
 # ---------------------------------------------------------------------------
 # Demo
 # ---------------------------------------------------------------------------
 
-annotate_video(
-    input_path="annotated_2026-02-02_14-17-51-842263.mp4",
-    output_path="annotated_video.mp4",
-    crop=None,  # or e.g. (100, 50, 800, 600) for ROI
-    frame_skip=1,  # process every frame; use 5 to process every 5th frame
-    detector_backend="retinaface"
-)
+# Read the CSV file with video metadata
+df = pd.read_csv("cyclesix_owl.csv")
+
+# Apply conditional filters here if needed
+
+# Iterate through each row
+for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing videos"):
+    try:
+        input_video = row["filepath"]
+        roi_str = row["ROI"]
+
+        # Skip rows with missing filepath or ROI
+        if pd.isna(input_video) or not isinstance(input_video, str):
+            print(f"Row {idx}: Skipping due to missing filepath")
+            continue
+
+        # Parse ROI: "x1,y1,x2,y2" -> (x, y, w, h)
+        crop = None
+        if pd.notna(roi_str) and isinstance(roi_str, str):
+            try:
+                coords = list(map(int, roi_str.split(",")))
+                if len(coords) == 4:
+                    x1, y1, x2, y2 = coords
+                    crop = (x1, y1, x2 - x1, y2 - y1)
+            except (ValueError, IndexError):
+                print(f"Row {idx}: Could not parse ROI '{roi_str}'")
+
+        # Get output directory (same as input directory)
+        input_dir = os.path.dirname(input_video)
+        input_filename = os.path.basename(input_video)
+        base_name = os.path.splitext(input_filename)[0]
+
+        # Construct output paths
+        output_video_filename = f"{base_name}_annot.mp4"
+        output_csv_filename = f"{base_name}_annot.csv"
+        output_video_path = os.path.join(input_dir, output_video_filename)
+        output_csv_path = os.path.join(input_dir, output_csv_filename)
+
+        print(f"\nProcessing: {input_filename}")
+        print(f"  Output video: {output_video_filename}")
+        print(f"  Output CSV: {output_csv_filename}")
+        print(f"  Crop ROI: {crop}")
+
+        # Process video
+        process_video_with_timeseries(
+            input_path=input_video,
+            output_video_path=output_video_path,
+            output_csv_path=output_csv_path,
+            crop=crop,
+            frame_skip=1,
+            detector_backend="retinaface"
+        )
+
+        print(f"  ✓ Successfully processed")
+
+    except Exception as e:
+        print(f"Row {idx}: Error processing {row.get('filepath', 'unknown')}: {e}")
+        continue
