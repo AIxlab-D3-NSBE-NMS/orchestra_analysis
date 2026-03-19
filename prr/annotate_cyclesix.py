@@ -53,200 +53,81 @@ def get_first_frame(video_path: Path):
 #  Interactive ROI selection                                                   #
 # --------------------------------------------------------------------------- #
 
-class ROISelector:
-    """
-    Shows the first frame in a matplotlib window and lets the user draw one
-    rectangle either by clicking-and-dragging OR clicking two corner points.
-
-    Controls
-    --------
-    Left-click + drag  : draw rectangle live
-    Left-click (×2)    : define two opposite corners
-    'Confirm' button   : accept the current rectangle
-    'Reset' button     : clear and start over
-    'Skip' button      : store None for this video
-    """
-
-    def __init__(self, frame_bgr):
-        import matplotlib.pyplot as plt
-        import matplotlib.patches as mpatches
-        from matplotlib.widgets import Button
-
-        self._plt    = plt
-        self._result = None          # (x1,y1,x2,y2) or None
-        self._done   = False
-
-        # Convert BGR → RGB for display
-        frame_rgb = frame_bgr[:, :, ::-1]
-
-        self._fig, self._ax = plt.subplots(figsize=(10, 7))
-        self._fig.canvas.manager.set_window_title(
-            "ROI — drag or click ×2 | Confirm / Reset / Skip")
-        self._ax.imshow(frame_rgb)
-        self._ax.set_title("Draw a rectangle, then click Confirm", fontsize=11)
-        self._ax.axis('off')
-
-        # Rectangle patch (invisible until drawn)
-        self._rect = mpatches.Rectangle(
-            (0, 0), 0, 0,
-            linewidth=2, edgecolor='lime', facecolor='none', visible=False)
-        self._ax.add_patch(self._rect)
-
-        # Dot marker for first single-click
-        self._dot, = self._ax.plot([], [], 'go', markersize=8)
-
-        # State
-        self._pressing  = False
-        self._pt1       = None
-        self._pt2       = None
-        self._click_pts = []
-
-        # Buttons
-        ax_confirm = self._fig.add_axes([0.65, 0.01, 0.10, 0.05])
-        ax_reset   = self._fig.add_axes([0.76, 0.01, 0.10, 0.05])
-        ax_skip    = self._fig.add_axes([0.87, 0.01, 0.10, 0.05])
-        self._btn_confirm = Button(ax_confirm, 'Confirm', color='limegreen')
-        self._btn_reset   = Button(ax_reset,   'Reset',   color='gold')
-        self._btn_skip    = Button(ax_skip,    'Skip',    color='tomato')
-        self._btn_confirm.on_clicked(self._on_confirm)
-        self._btn_reset.on_clicked(self._on_reset)
-        self._btn_skip.on_clicked(self._on_skip)
-
-        # Mouse events
-        self._fig.canvas.mpl_connect('button_press_event',   self._on_press)
-        self._fig.canvas.mpl_connect('motion_notify_event',  self._on_move)
-        self._fig.canvas.mpl_connect('button_release_event', self._on_release)
-        self._fig.canvas.mpl_connect('close_event',          self._on_close)
-
-    # ------------------------------------------------------------------ #
-
-    def _update_rect(self):
-        if self._pt1 and self._pt2:
-            x1 = min(self._pt1[0], self._pt2[0])
-            y1 = min(self._pt1[1], self._pt2[1])
-            w  = abs(self._pt2[0] - self._pt1[0])
-            h  = abs(self._pt2[1] - self._pt1[1])
-            self._rect.set_xy((x1, y1))
-            self._rect.set_width(w)
-            self._rect.set_height(h)
-            self._rect.set_visible(True)
-        else:
-            self._rect.set_visible(False)
-        self._fig.canvas.draw_idle()
-
-    def _on_press(self, event):
-        if event.inaxes != self._ax or event.button != 1:
-            return
-        self._pressing = True
-        self._pt1 = (event.xdata, event.ydata)
-        self._pt2 = None
-        self._click_pts = [(event.xdata, event.ydata)]
-        self._dot.set_data([], [])
-        self._update_rect()
-
-    def _on_move(self, event):
-        if not self._pressing or event.inaxes != self._ax:
-            return
-        self._pt2 = (event.xdata, event.ydata)
-        self._update_rect()
-
-    def _on_release(self, event):
-        if not self._pressing or event.inaxes != self._ax or event.button != 1:
-            self._pressing = False
-            return
-        self._pressing = False
-        self._pt2 = (event.xdata, event.ydata)
-
-        drag_dist = (abs(self._pt2[0] - self._pt1[0]) +
-                     abs(self._pt2[1] - self._pt1[1]))
-
-        if drag_dist > 5:
-            # Valid drag – rectangle is complete
-            self._click_pts = []
-            self._dot.set_data([], [])
-        else:
-            # Treat as a single click
-            self._click_pts.append((event.xdata, event.ydata))
-            if len(self._click_pts) == 2:
-                self._pt1 = self._click_pts[0]
-                self._pt2 = self._click_pts[1]
-                self._click_pts = []
-                self._dot.set_data([], [])
-            else:
-                # Waiting for second click – show marker, clear rect
-                self._pt2 = None
-                self._dot.set_data([self._pt1[0]], [self._pt1[1]])
-                self._rect.set_visible(False)
-                self._fig.canvas.draw_idle()
-                return
-
-        self._update_rect()
-
-    def _on_confirm(self, _event):
-        if self._pt1 and self._pt2:
-            x1 = int(min(self._pt1[0], self._pt2[0]))
-            y1 = int(min(self._pt1[1], self._pt2[1]))
-            x2 = int(max(self._pt1[0], self._pt2[0]))
-            y2 = int(max(self._pt1[1], self._pt2[1]))
-            self._result = (x1, y1, x2, y2)
-            self._done = True
-            self._plt.close(self._fig)
-        else:
-            self._ax.set_title("No rectangle drawn yet – draw one first!",
-                               color='red', fontsize=11)
-            self._fig.canvas.draw_idle()
-
-    def _on_reset(self, _event):
-        self._pt1 = self._pt2 = None
-        self._click_pts = []
-        self._pressing  = False
-        self._dot.set_data([], [])
-        self._rect.set_visible(False)
-        self._ax.set_title("Draw a rectangle, then click Confirm", fontsize=11, color='black')
-        self._fig.canvas.draw_idle()
-
-    def _on_skip(self, _event):
-        self._result = None
-        self._done   = True
-        self._plt.close(self._fig)
-
-    def _on_close(self, _event):
-        self._done = True   # treat window-close as skip
-
-    # ------------------------------------------------------------------ #
-
-    def select(self) -> tuple[int, int, int, int] | None:
-        self._plt.show()    # blocks until window is closed
-        return self._result
-
-
 def select_roi(video_path: Path) -> dict:
     """
-    Display the first frame and let the user pick an ROI.
+    Display the first frame and let the user pick an ROI using
+    matplotlib's built-in RectangleSelector widget.
 
     Returns a dict with keys: roi_x1, roi_y1, roi_x2, roi_y2
-    (all None if the user skipped).
+    (all None if the user skipped or closed the window).
     """
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import RectangleSelector, Button
+
     frame = get_first_frame(video_path)
-    empty = dict(roi_x1=None, roi_y1=None, roi_x2=None, roi_y2=None)  # internal keys
+    empty = dict(roi_x1=None, roi_y1=None, roi_x2=None, roi_y2=None)
 
     if frame is None:
         print(f"  [ROI] Could not read first frame from {video_path}")
         return empty
 
-    print("  [ROI] Draw a rectangle on the frame.")
-    print("        Drag  OR  click two corners | ENTER=confirm  R=reset  Q=skip")
+    print("  [ROI] Drag to draw a rectangle, then click Confirm (or Skip).")
 
-    selector = ROISelector(frame)
-    result   = selector.select()
+    frame_rgb = frame[:, :, ::-1]
+    result    = {}   # filled by _on_confirm
 
-    if result is None:
+    fig, ax = plt.subplots(figsize=(10, 7))
+    try:
+        fig.canvas.manager.set_window_title("ROI selection")
+    except AttributeError:
+        pass
+    ax.imshow(frame_rgb)
+    ax.set_title("Drag to select ROI, then click Confirm", fontsize=11)
+    ax.axis('off')
+    fig.subplots_adjust(bottom=0.10)
+
+    selector = RectangleSelector(
+        ax,
+        onselect=lambda eclick, erelease: None,   # we read extents on confirm
+        useblit=True,
+        button=[1],
+        minspanx=5, minspany=5,
+        spancoords='pixels',
+        interactive=True,
+    )
+
+    ax_confirm = fig.add_axes([0.65, 0.01, 0.10, 0.05])
+    ax_skip    = fig.add_axes([0.77, 0.01, 0.10, 0.05])
+    btn_confirm = Button(ax_confirm, 'Confirm', color='limegreen')
+    btn_skip    = Button(ax_skip,    'Skip',    color='tomato')
+
+    def _on_confirm(_event):
+        if not selector.extents or selector.extents == (0, 0, 0, 0):
+            ax.set_title("No rectangle drawn yet – drag one first!", color='red', fontsize=11)
+            fig.canvas.draw_idle()
+            return
+        x1, x2, y1, y2 = selector.extents
+        result['roi'] = (int(x1), int(y1), int(x2), int(y2))
+        plt.close(fig)
+
+    def _on_skip(_event):
+        plt.close(fig)
+
+    btn_confirm.on_clicked(_on_confirm)
+    btn_skip.on_clicked(_on_skip)
+
+    plt.show()   # blocks until window closes
+
+    if 'roi' not in result:
         print("  [ROI] Skipped.")
         return empty
 
-    x1, y1, x2, y2 = result
+    x1, y1, x2, y2 = result['roi']
     print(f"  [ROI] Selected: ({x1}, {y1}) → ({x2}, {y2})")
     return dict(roi_x1=x1, roi_y1=y1, roi_x2=x2, roi_y2=y2)
+
+
+
 
 
 # --------------------------------------------------------------------------- #
