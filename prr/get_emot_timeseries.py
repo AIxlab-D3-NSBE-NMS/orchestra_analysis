@@ -344,6 +344,7 @@ def annotate_video(
     crop: tuple | None = None,
     frame_skip: int = 1,
     detector_backend: str = "retinaface",
+    resolution_scale: float = 0.5,
 ) -> None:
     """Detect emotions on every *frame_skip*-th frame of a video and write annotated output.
 
@@ -365,6 +366,10 @@ def annotate_video(
         Defaults to 1 (every frame is processed).
     detector_backend : str, optional
         DeepFace detector backend.  Defaults to ``'retinaface'``.
+    resolution_scale : float, optional
+        Scale factor for output video resolution (default 0.5 = 50% of original).
+        For example, 0.5 will reduce both width and height to 50% of the original.
+        Use 1.0 for full resolution.
     """
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
@@ -375,8 +380,12 @@ def annotate_video(
     width: int = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height: int = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+    # Scale output dimensions
+    output_width = int(width * resolution_scale)
+    output_height = int(height * resolution_scale)
+
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    writer = cv2.VideoWriter(output_path, fourcc, fps, (output_width, output_height))
 
     last_annotated: np.ndarray | None = None
     frame_index: int = 0
@@ -401,7 +410,14 @@ def annotate_video(
                     print(f"[Frame {frame_index}] Detection error: {exc}")
                     last_annotated = frame_bgr.copy()
 
-            writer.write(last_annotated if last_annotated is not None else frame_bgr)
+            # Prepare frame for writing
+            frame_to_write = last_annotated if last_annotated is not None else frame_bgr
+
+            # Scale down if needed
+            if resolution_scale != 1.0:
+                frame_to_write = cv2.resize(frame_to_write, (output_width, output_height))
+
+            writer.write(frame_to_write)
             frame_index += 1
             pbar.update(1)
 
@@ -416,6 +432,7 @@ def process_video_with_timeseries(
     crop: tuple | None = None,
     frame_skip: int = 1,
     detector_backend: str = "retinaface",
+    resolution_scale: float = 0.5,
 ) -> None:
     """Detect emotions on every frame_skip-th frame of a video and export annotated video and CSV timeseries.
 
@@ -437,6 +454,10 @@ def process_video_with_timeseries(
         Defaults to 1 (every frame is processed).
     detector_backend : str, optional
         DeepFace detector backend.  Defaults to ``'retinaface'``.
+    resolution_scale : float, optional
+        Scale factor for output video resolution (default 0.5 = 50% of original).
+        For example, 0.5 will reduce both width and height to 50% of the original.
+        Use 1.0 for full resolution.
     """
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
@@ -447,8 +468,12 @@ def process_video_with_timeseries(
     width: int = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height: int = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+    # Scale output dimensions
+    output_width = int(width * resolution_scale)
+    output_height = int(height * resolution_scale)
+
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+    writer = cv2.VideoWriter(output_video_path, fourcc, fps, (output_width, output_height))
 
     # Collect emotion data per frame
     emotion_data = []
@@ -540,7 +565,14 @@ def process_video_with_timeseries(
             row_data.update(emotions_dict)
             emotion_data.append(row_data)
 
-            writer.write(last_annotated if last_annotated is not None else frame_bgr)
+            # Prepare frame for writing
+            frame_to_write = last_annotated if last_annotated is not None else frame_bgr
+
+            # Scale down if needed
+            if resolution_scale != 1.0:
+                frame_to_write = cv2.resize(frame_to_write, (output_width, output_height))
+
+            writer.write(frame_to_write)
             frame_index += 1
             pbar.update(1)
 
@@ -559,29 +591,22 @@ def process_video_with_timeseries(
 # Read the CSV file with video metadata
 df = pd.read_csv("cyclesix_owl.csv")
 
-# Apply conditional filters here if needed
+# Pre-scan to build list of files to process
+files_to_process = []
 
-# Iterate through each row
-for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing videos"):
+print("Scanning for files to process...")
+for idx, row in df.iterrows():
     try:
         input_video = row["filepath"]
         roi_str = row["ROI"]
 
-        # Skip rows with missing filepath or ROI
+        # Skip rows with missing filepath
         if pd.isna(input_video) or not isinstance(input_video, str):
-            print(f"Row {idx}: Skipping due to missing filepath")
             continue
 
-        # Parse ROI: "x1,y1,x2,y2" -> (x, y, w, h)
-        crop = None
-        if pd.notna(roi_str) and isinstance(roi_str, str):
-            try:
-                coords = list(map(int, roi_str.split(",")))
-                if len(coords) == 4:
-                    x1, y1, x2, y2 = coords
-                    crop = (x1, y1, x2 - x1, y2 - y1)
-            except (ValueError, IndexError):
-                print(f"Row {idx}: Could not parse ROI '{roi_str}'")
+        # Skip rows with missing or NaN ROI
+        if pd.isna(roi_str) or not isinstance(roi_str, str):
+            continue
 
         # Get output directory (same as input directory)
         input_dir = os.path.dirname(input_video)
@@ -594,23 +619,70 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing videos"):
         output_video_path = os.path.join(input_dir, output_video_filename)
         output_csv_path = os.path.join(input_dir, output_csv_filename)
 
+        # Skip if annotated files already exist
+        if os.path.exists(output_video_path) and os.path.exists(output_csv_path):
+            continue
+
+        # Parse ROI: "x1,y1,x2,y2" -> (x, y, w, h)
+        crop = None
+        try:
+            coords = list(map(int, roi_str.split(",")))
+            if len(coords) == 4:
+                x1, y1, x2, y2 = coords
+                crop = (x1, y1, x2 - x1, y2 - y1)
+            else:
+                continue
+        except (ValueError, IndexError):
+            continue
+
+        # Add to processing list
+        files_to_process.append({
+            "idx": idx,
+            "input_video": input_video,
+            "output_video_path": output_video_path,
+            "output_csv_path": output_csv_path,
+            "crop": crop,
+            "input_filename": input_filename,
+            "output_video_filename": output_video_filename,
+            "output_csv_filename": output_csv_filename,
+        })
+
+    except Exception as e:
+        continue
+
+print(f"Found {len(files_to_process)} files to process\n")
+
+# Process the files with progress bar
+for file_info in tqdm(files_to_process, desc="Processing videos", unit="video"):
+    try:
+        idx = file_info["idx"]
+        input_video = file_info["input_video"]
+        output_video_path = file_info["output_video_path"]
+        output_csv_path = file_info["output_csv_path"]
+        crop = file_info["crop"]
+        input_filename = file_info["input_filename"]
+        output_video_filename = file_info["output_video_filename"]
+        output_csv_filename = file_info["output_csv_filename"]
+
         print(f"\nProcessing: {input_filename}")
         print(f"  Output video: {output_video_filename}")
         print(f"  Output CSV: {output_csv_filename}")
         print(f"  Crop ROI: {crop}")
 
-        # Process video
+        # Process video with lower resolution output (50% of original)
+        # Adjust resolution_scale as needed: 0.25 (25%), 0.5 (50%), 0.75 (75%), 1.0 (100%)
         process_video_with_timeseries(
             input_path=input_video,
             output_video_path=output_video_path,
             output_csv_path=output_csv_path,
             crop=crop,
             frame_skip=1,
-            detector_backend="retinaface"
+            detector_backend="retinaface",
+            resolution_scale=0.5
         )
 
         print(f"  ✓ Successfully processed")
 
     except Exception as e:
-        print(f"Row {idx}: Error processing {row.get('filepath', 'unknown')}: {e}")
+        print(f"Row {file_info['idx']}: Error processing {file_info['input_filename']}: {e}")
         continue
