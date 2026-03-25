@@ -50,6 +50,7 @@ DEFAULT_OUT_TIME = "emotion_histogram_time.png"
 DEFAULT_OUT_PARTICIPANTS = "emotion_histogram_participants.png"
 DEFAULT_WINDOW_LENGTH_S = 0.5  # seconds
 DEFAULT_WINDOW_OVERLAP = 0.5  # 50% overlap
+DEFAULT_CONFIDENCE_THRESHOLD = 95.0  # percent (0-100)
 
 # columns considered metadata / not emotion scores
 NON_EMOTION_COLS = {
@@ -136,6 +137,7 @@ def apply_sliding_window(
     emotions: List[str],
     window_length_s: float = DEFAULT_WINDOW_LENGTH_S,
     window_overlap: float = DEFAULT_WINDOW_OVERLAP,
+    confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
 ) -> pd.DataFrame:
     """
     Apply a sliding time window to aggregate emotions over time windows.
@@ -148,14 +150,17 @@ def apply_sliding_window(
     frame in the window (actual_end_time - actual_start_time), not the nominal
     window_length_s. This accounts for actual frame sampling rates.
     
+    Windows with average emotion scores below the confidence_threshold are filtered out.
+    
     Args:
         df: Prepared dataframe with timestamp_s and emotion columns
         emotions: List of emotion column names
         window_length_s: Length of sliding window in seconds (default: 0.5)
         window_overlap: Overlap as fraction 0-1 (default: 0.5 for 50%)
+        confidence_threshold: Minimum average emotion score (0-100) for window inclusion (default: 95.0)
     
     Returns:
-        DataFrame with windowed data: timestamp_s, video_id, dominant emotion, window_duration_s
+        DataFrame with windowed data: timestamp_s, video_id, dominant emotion, window_duration_s, confidence
     """
     # Ensure data is sorted by video_id and timestamp
     df = df.sort_values(by=["video_id", "timestamp_s"]).reset_index(drop=True)
@@ -208,6 +213,11 @@ def apply_sliding_window(
             # Find dominant emotion (highest mean score)
             if max(emotion_means.values()) > 0:
                 dominant_emotion = max(emotion_means, key=emotion_means.get)
+                dominant_score = emotion_means[dominant_emotion]
+                
+                # Apply confidence threshold: skip windows with low average emotion scores
+                if dominant_score < confidence_threshold:
+                    continue
                 
                 # Calculate actual duration: time span from first to last frame in window
                 actual_start_time = window_frames["timestamp_s"].min()
@@ -228,6 +238,7 @@ def apply_sliding_window(
                     "window_start": window_start,
                     "window_end": window_end,
                     "window_duration": window_duration,
+                    "confidence": dominant_score,
                 })
     
     windowed_df = pd.DataFrame(windowed_rows)
@@ -243,6 +254,7 @@ def calculate_time_per_emotion(
     emotions: List[str],
     window_length_s: Optional[float] = None,
     window_overlap: float = DEFAULT_WINDOW_OVERLAP,
+    confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
 ) -> Dict[str, float]:
     """
     Calculate total time spent in each emotion.
@@ -255,6 +267,7 @@ def calculate_time_per_emotion(
         emotions: List of emotion column names
         window_length_s: Optional sliding window length in seconds. If None, uses frame-by-frame.
         window_overlap: Overlap as fraction 0-1 (default: 0.5 for 50%)
+        confidence_threshold: Minimum emotion score (0-100) for window inclusion (default: 95.0)
     
     Returns:
         Dictionary mapping emotion -> total time in seconds
@@ -263,7 +276,7 @@ def calculate_time_per_emotion(
     
     # Apply sliding window if specified
     if window_length_s is not None and window_length_s > 0:
-        df_copy = apply_sliding_window(df_copy, emotions, window_length_s, window_overlap)
+        df_copy = apply_sliding_window(df_copy, emotions, window_length_s, window_overlap, confidence_threshold)
         
         # Use actual window duration calculated from frame spans
         df_copy["frame_duration"] = df_copy["window_duration"]
@@ -295,6 +308,7 @@ def calculate_participants_per_emotion(
     emotions: List[str],
     window_length_s: Optional[float] = None,
     window_overlap: float = DEFAULT_WINDOW_OVERLAP,
+    confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
 ) -> Dict[str, int]:
     """
     Calculate number of unique participants (video_id) per emotion.
@@ -310,6 +324,7 @@ def calculate_participants_per_emotion(
         emotions: List of emotion column names
         window_length_s: Optional sliding window length in seconds. If None, uses frame-by-frame.
         window_overlap: Overlap as fraction 0-1 (default: 0.5 for 50%)
+        confidence_threshold: Minimum emotion score (0-100) for window inclusion (default: 95.0)
     
     Returns:
         Dictionary mapping emotion -> number of unique participants
@@ -318,7 +333,7 @@ def calculate_participants_per_emotion(
     
     # Apply sliding window if specified
     if window_length_s is not None and window_length_s > 0:
-        df_copy = apply_sliding_window(df_copy, emotions, window_length_s, window_overlap)
+        df_copy = apply_sliding_window(df_copy, emotions, window_length_s, window_overlap, confidence_threshold)
         participants_per_emotion = (
             df_copy.groupby("dominant")["video_id"].nunique().to_dict()
         )
@@ -505,6 +520,12 @@ def main(argv=None):
         default=DEFAULT_WINDOW_OVERLAP,
         help=f"Window overlap as fraction 0-1 (default: {DEFAULT_WINDOW_OVERLAP} = 50%%). Example: 0.5",
     )
+    p.add_argument(
+        "--confidence-threshold",
+        type=float,
+        default=DEFAULT_CONFIDENCE_THRESHOLD,
+        help=f"Minimum dominant emotion score (0-100) for window inclusion (default: {DEFAULT_CONFIDENCE_THRESHOLD}%%). Filters low-confidence predictions.",
+    )
     args = p.parse_args(argv)
 
     csv_path = Path(args.csv)
@@ -536,7 +557,9 @@ def main(argv=None):
     )
     
     if args.window_length_s is not None:
-        print(f"Using sliding window: length={args.window_length_s}s, overlap={args.window_overlap*100:.0f}%")
+        print(f"Using sliding window: length={args.window_length_s}s, overlap={args.window_overlap*100:.0f}%, confidence_threshold={args.confidence_threshold:.1f}%")
+    else:
+        print(f"Using frame-by-frame analysis with confidence_threshold={args.confidence_threshold:.1f}%")
 
     try:
         prepared = prepare_dataframe(df, emotions)
@@ -547,10 +570,10 @@ def main(argv=None):
     # Calculate metrics
     print("\nCalculating metrics...")
     time_per_emotion = calculate_time_per_emotion(
-        prepared, emotions, window_length_s=args.window_length_s, window_overlap=args.window_overlap
+        prepared, emotions, window_length_s=args.window_length_s, window_overlap=args.window_overlap, confidence_threshold=args.confidence_threshold
     )
     participants_per_emotion = calculate_participants_per_emotion(
-        prepared, emotions, window_length_s=args.window_length_s, window_overlap=args.window_overlap
+        prepared, emotions, window_length_s=args.window_length_s, window_overlap=args.window_overlap, confidence_threshold=args.confidence_threshold
     )
 
     print("\nTime per emotion (seconds):")
