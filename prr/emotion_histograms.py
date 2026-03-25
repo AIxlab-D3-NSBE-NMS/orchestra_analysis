@@ -28,6 +28,13 @@ import numpy as np
 import pandas as pd
 
 try:
+    from tqdm import tqdm
+except ImportError:
+    # Fallback if tqdm not installed
+    def tqdm(iterable, *args, **kwargs):
+        return iterable
+
+try:
     import matplotlib.pyplot as plt
     import seaborn as sns
 except Exception:
@@ -41,6 +48,8 @@ except Exception:
 DEFAULT_CSV = "orchestra_analysis/cyclesix_owl_emotions.csv"
 DEFAULT_OUT_TIME = "emotion_histogram_time.png"
 DEFAULT_OUT_PARTICIPANTS = "emotion_histogram_participants.png"
+DEFAULT_WINDOW_LENGTH_S = 0.5  # seconds
+DEFAULT_WINDOW_OVERLAP = 0.5  # 50% overlap
 
 # columns considered metadata / not emotion scores
 NON_EMOTION_COLS = {
@@ -122,30 +131,155 @@ def prepare_dataframe(df: pd.DataFrame, emotions: List[str]) -> pd.DataFrame:
     return df
 
 
-def calculate_time_per_emotion(df: pd.DataFrame, emotions: List[str]) -> Dict[str, float]:
+def apply_sliding_window(
+    df: pd.DataFrame,
+    emotions: List[str],
+    window_length_s: float = DEFAULT_WINDOW_LENGTH_S,
+    window_overlap: float = DEFAULT_WINDOW_OVERLAP,
+) -> pd.DataFrame:
+    """
+    Apply a sliding time window to aggregate emotions over time windows.
+    
+    For each participant (video_id), slides a window of specified length
+    with specified overlap percentage. Within each window, finds the emotion
+    with the highest mean score and records that as the dominant emotion.
+    
+    Duration per window is calculated as the actual time span from first to last
+    frame in the window (actual_end_time - actual_start_time), not the nominal
+    window_length_s. This accounts for actual frame sampling rates.
+    
+    Args:
+        df: Prepared dataframe with timestamp_s and emotion columns
+        emotions: List of emotion column names
+        window_length_s: Length of sliding window in seconds (default: 0.5)
+        window_overlap: Overlap as fraction 0-1 (default: 0.5 for 50%)
+    
+    Returns:
+        DataFrame with windowed data: timestamp_s, video_id, dominant emotion, window_duration_s
+    """
+    # Ensure data is sorted by video_id and timestamp
+    df = df.sort_values(by=["video_id", "timestamp_s"]).reset_index(drop=True)
+    
+    windowed_rows = []
+    unique_videos = df["video_id"].unique()
+    
+    # Process each participant separately with progress bar
+    for video_id in tqdm(unique_videos, desc="Applying sliding window", unit="participant"):
+        video_df = df[df["video_id"] == video_id].reset_index(drop=True)
+        
+        if len(video_df) == 0:
+            continue
+        
+        # Calculate window parameters
+        start_time = video_df["timestamp_s"].min()
+        end_time = video_df["timestamp_s"].max()
+        step_size = window_length_s * (1 - window_overlap)
+        
+        # Create windows
+        window_starts = []
+        current_start = start_time
+        while current_start <= end_time:
+            window_starts.append(current_start)
+            current_start += step_size
+        
+        # Process each window
+        for window_start in window_starts:
+            window_end = window_start + window_length_s
+            
+            # Get frames within this window
+            window_frames = video_df[
+                (video_df["timestamp_s"] >= window_start)
+                & (video_df["timestamp_s"] < window_end)
+            ]
+            
+            # Skip if no frames in window or only NaN values
+            if len(window_frames) == 0:
+                continue
+            
+            # Calculate mean emotion scores in this window
+            emotion_means = {}
+            for emotion in emotions:
+                valid_scores = window_frames[emotion].dropna()
+                if len(valid_scores) > 0:
+                    emotion_means[emotion] = valid_scores.mean()
+                else:
+                    emotion_means[emotion] = 0.0
+            
+            # Find dominant emotion (highest mean score)
+            if max(emotion_means.values()) > 0:
+                dominant_emotion = max(emotion_means, key=emotion_means.get)
+                
+                # Calculate actual duration: time span from first to last frame in window
+                actual_start_time = window_frames["timestamp_s"].min()
+                actual_end_time = window_frames["timestamp_s"].max()
+                # If only one frame, use a reasonable estimate (e.g., 1/30 fps ≈ 0.033s)
+                # Otherwise use actual span
+                if actual_start_time == actual_end_time:
+                    window_duration = 1.0 / 30.0  # Assume 30 fps frame duration
+                else:
+                    window_duration = actual_end_time - actual_start_time
+                
+                # Use window center as timestamp
+                window_center = (window_start + window_end) / 2.0
+                windowed_rows.append({
+                    "video_id": video_id,
+                    "timestamp_s": window_center,
+                    "dominant": dominant_emotion,
+                    "window_start": window_start,
+                    "window_end": window_end,
+                    "window_duration": window_duration,
+                })
+    
+    windowed_df = pd.DataFrame(windowed_rows)
+    
+    if windowed_df.empty:
+        raise ValueError("No windows generated from the data. Check window_length_s and overlap parameters.")
+    
+    return windowed_df
+
+
+def calculate_time_per_emotion(
+    df: pd.DataFrame,
+    emotions: List[str],
+    window_length_s: Optional[float] = None,
+    window_overlap: float = DEFAULT_WINDOW_OVERLAP,
+) -> Dict[str, float]:
     """
     Calculate total time spent in each emotion.
     
-    Assumes each row represents a frame, and computes the time per frame
-    by looking at consecutive timestamp differences. Uses the emotion
-    with the highest score as the dominant emotion for that frame.
+    If window_length_s is provided, applies sliding window aggregation first.
+    Otherwise, uses frame-by-frame dominant emotion (noisy).
+    
+    Args:
+        df: Prepared dataframe with timestamp_s and emotion columns
+        emotions: List of emotion column names
+        window_length_s: Optional sliding window length in seconds. If None, uses frame-by-frame.
+        window_overlap: Overlap as fraction 0-1 (default: 0.5 for 50%)
     
     Returns:
         Dictionary mapping emotion -> total time in seconds
     """
-    # Find dominant emotion per frame (highest score)
     df_copy = df.copy()
-    df_copy["dominant"] = df_copy[emotions].idxmax(axis=1)
     
-    # Calculate frame duration (time to next frame)
-    df_copy = df_copy.sort_values(by=["video_id", "timestamp_s"])
-    df_copy["next_timestamp"] = df_copy.groupby("video_id")["timestamp_s"].shift(-1)
-    df_copy["frame_duration"] = df_copy["next_timestamp"] - df_copy["timestamp_s"]
+    # Apply sliding window if specified
+    if window_length_s is not None and window_length_s > 0:
+        df_copy = apply_sliding_window(df_copy, emotions, window_length_s, window_overlap)
+        
+        # Use actual window duration calculated from frame spans
+        df_copy["frame_duration"] = df_copy["window_duration"]
+    else:
+        # Frame-by-frame approach
+        df_copy["dominant"] = df_copy[emotions].idxmax(axis=1)
+        
+        # Calculate frame duration (time to next frame)
+        df_copy = df_copy.sort_values(by=["video_id", "timestamp_s"])
+        df_copy["next_timestamp"] = df_copy.groupby("video_id")["timestamp_s"].shift(-1)
+        df_copy["frame_duration"] = df_copy["next_timestamp"] - df_copy["timestamp_s"]
+        
+        # Fill NaN durations (last frame of each video) with 0
+        df_copy["frame_duration"] = df_copy["frame_duration"].fillna(0)
     
-    # Fill NaN durations (last frame of each video) with 0
-    df_copy["frame_duration"] = df_copy["frame_duration"].fillna(0)
-    
-    # Sum frame durations by dominant emotion
+    # Sum frame/window durations by dominant emotion
     time_per_emotion = df_copy.groupby("dominant")["frame_duration"].sum().to_dict()
     
     # Ensure all emotions are present (even if 0)
@@ -156,23 +290,49 @@ def calculate_time_per_emotion(df: pd.DataFrame, emotions: List[str]) -> Dict[st
     return time_per_emotion
 
 
-def calculate_participants_per_emotion(df: pd.DataFrame, emotions: List[str]) -> Dict[str, int]:
+def calculate_participants_per_emotion(
+    df: pd.DataFrame,
+    emotions: List[str],
+    window_length_s: Optional[float] = None,
+    window_overlap: float = DEFAULT_WINDOW_OVERLAP,
+) -> Dict[str, int]:
     """
     Calculate number of unique participants (video_id) per emotion.
     
-    A participant is counted for an emotion if there's at least one frame
-    where that emotion has a non-zero score.
+    If window_length_s is provided, applies sliding window aggregation first.
+    Otherwise, counts participants frame-by-frame.
+    
+    A participant is counted for an emotion if there's at least one frame/window
+    where that emotion is dominant.
+    
+    Args:
+        df: Prepared dataframe with timestamp_s and emotion columns
+        emotions: List of emotion column names
+        window_length_s: Optional sliding window length in seconds. If None, uses frame-by-frame.
+        window_overlap: Overlap as fraction 0-1 (default: 0.5 for 50%)
     
     Returns:
         Dictionary mapping emotion -> number of unique participants
     """
-    participants_per_emotion = {}
+    df_copy = df.copy()
     
+    # Apply sliding window if specified
+    if window_length_s is not None and window_length_s > 0:
+        df_copy = apply_sliding_window(df_copy, emotions, window_length_s, window_overlap)
+        participants_per_emotion = (
+            df_copy.groupby("dominant")["video_id"].nunique().to_dict()
+        )
+    else:
+        # Frame-by-frame approach
+        df_copy["dominant"] = df_copy[emotions].idxmax(axis=1)
+        participants_per_emotion = (
+            df_copy.groupby("dominant")["video_id"].nunique().to_dict()
+        )
+    
+    # Ensure all emotions are present (even if 0)
     for emotion in emotions:
-        # Get rows where this emotion has a non-zero/non-NaN score
-        mask = (df[emotion].notna()) & (df[emotion] > 0)
-        unique_vids = df[mask]["video_id"].nunique()
-        participants_per_emotion[emotion] = unique_vids
+        if emotion not in participants_per_emotion:
+            participants_per_emotion[emotion] = 0
     
     return participants_per_emotion
 
@@ -333,6 +493,18 @@ def main(argv=None):
         default=None,
         help="Explicit list of emotion columns to plot (default: auto-detect).",
     )
+    p.add_argument(
+        "--window-length-s",
+        type=float,
+        default=None,
+        help=f"Sliding window length in seconds (default: None = frame-by-frame). Example: {DEFAULT_WINDOW_LENGTH_S}",
+    )
+    p.add_argument(
+        "--window-overlap",
+        type=float,
+        default=DEFAULT_WINDOW_OVERLAP,
+        help=f"Window overlap as fraction 0-1 (default: {DEFAULT_WINDOW_OVERLAP} = 50%%). Example: 0.5",
+    )
     args = p.parse_args(argv)
 
     csv_path = Path(args.csv)
@@ -358,9 +530,13 @@ def main(argv=None):
         )
         sys.exit(3)
 
+    total_videos = df['video_id'].nunique()
     print(
-        f"Loaded {len(df):,} rows from {csv_path}; {df['video_id'].nunique():,} unique participants; analyzing {len(emotions)} emotions."
+        f"Loaded {len(df):,} rows from {csv_path}; {total_videos:,} unique participants; analyzing {len(emotions)} emotions."
     )
+    
+    if args.window_length_s is not None:
+        print(f"Using sliding window: length={args.window_length_s}s, overlap={args.window_overlap*100:.0f}%")
 
     try:
         prepared = prepare_dataframe(df, emotions)
@@ -369,8 +545,13 @@ def main(argv=None):
         sys.exit(4)
 
     # Calculate metrics
-    time_per_emotion = calculate_time_per_emotion(prepared, emotions)
-    participants_per_emotion = calculate_participants_per_emotion(prepared, emotions)
+    print("\nCalculating metrics...")
+    time_per_emotion = calculate_time_per_emotion(
+        prepared, emotions, window_length_s=args.window_length_s, window_overlap=args.window_overlap
+    )
+    participants_per_emotion = calculate_participants_per_emotion(
+        prepared, emotions, window_length_s=args.window_length_s, window_overlap=args.window_overlap
+    )
 
     print("\nTime per emotion (seconds):")
     for emotion in emotions:
@@ -380,6 +561,7 @@ def main(argv=None):
     for emotion in emotions:
         print(f"  {emotion}: {participants_per_emotion.get(emotion, 0)} unique video_ids")
 
+    print("\nGenerating plots...")
     if out_time:
         plot_emotion_histogram_time(time_per_emotion, emotions, out_time)
 
@@ -391,6 +573,8 @@ def main(argv=None):
             "No output paths specified (all skipped). Nothing to do.", file=sys.stderr
         )
         sys.exit(0)
+    
+    print("\nDone!")
 
 
 if __name__ == "__main__":
