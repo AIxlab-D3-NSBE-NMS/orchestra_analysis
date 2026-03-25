@@ -7,3 +7,6 @@ deprecated
 #dirty_tester.py
 .idea
 __pycache__/
+*.png
+*.mp4
+*.csv
