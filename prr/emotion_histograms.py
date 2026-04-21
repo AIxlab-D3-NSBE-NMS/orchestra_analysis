@@ -364,6 +364,32 @@ def calculate_participants_per_emotion(
     return participants_per_emotion
 
 
+def calculate_time_per_emotion_per_participant(
+    time_per_emotion: Dict[str, float],
+    participants_per_emotion: Dict[str, int],
+    emotions: List[str],
+) -> Dict[str, float]:
+    """
+    Calculate time per emotion divided by number of participants showing that emotion.
+
+    Emotions with zero participants are set to 0.0 to avoid division by zero.
+
+    Args:
+        time_per_emotion: Dictionary mapping emotion -> total time (seconds)
+        participants_per_emotion: Dictionary mapping emotion -> participant count
+        emotions: List of emotion names
+
+    Returns:
+        Dictionary mapping emotion -> time per participant (seconds)
+    """
+    result: Dict[str, float] = {}
+    for emotion in emotions:
+        t = time_per_emotion.get(emotion, 0.0)
+        n = participants_per_emotion.get(emotion, 0)
+        result[emotion] = t / n if n > 0 else 0.0
+    return result
+
+
 def plot_emotion_histogram_time(
     time_per_emotion: Dict[str, float],
     emotions: List[str],
@@ -371,9 +397,9 @@ def plot_emotion_histogram_time(
     figsize: Optional[tuple] = None,
     facecolor: Optional[str] = "#3a3a3a",
     edgecolor: Optional[str] = "#1a1a1a",
-    xlabel: Optional[str] = "Emotion",
-    ylabel: Optional[str] = "Time (seconds)",
-    title: Optional[str] = "Total Time Spent in Each Emotion",
+    xlabel: str = "Emotion",
+    ylabel: str = "Time (seconds)",
+    title: str = "Total Time Spent in Each Emotion",
 ):
     """
     Plot a histogram of total time spent in each emotion.
@@ -458,9 +484,9 @@ def plot_emotion_histogram_participants(
     figsize: Optional[tuple] = None,
     facecolor: Optional[str] = "#3a3a3a",
     edgecolor: Optional[str] = "#1a1a1a",
-    xlabel: Optional[str] = "Emotion",
-    ylabel: Optional[str] = "Number of Participants",
-    title: Optional[str] = "Number of Unique Participants per Emotion",
+    xlabel: str = "Emotion",
+    ylabel: str = "Number of Participants",
+    title: str = "Number of Unique Participants per Emotion",
 ):
     """
     Plot a histogram of unique participant count per emotion.
@@ -538,6 +564,94 @@ def plot_emotion_histogram_participants(
     print(f"Saved participants histogram to: {out_path}")
 
 
+def plot_emotion_histogram_time_per_participant(
+    time_per_participant: Dict[str, float],
+    emotions: List[str],
+    out_path: Path,
+    figsize: Optional[tuple] = None,
+    facecolor: Optional[str] = "#3a3a3a",
+    edgecolor: Optional[str] = "#1a1a1a",
+    xlabel: str = "Emotion",
+    ylabel: str = "Time per Participant (seconds)",
+    title: str = "Total Time per Participant per Emotion",
+):
+    """
+    Plot a histogram of total time per participant for each emotion
+    (time_per_emotion / participants_per_emotion).
+
+    Args:
+        time_per_participant: Dictionary mapping emotion -> time per participant (seconds)
+        emotions: List of emotion names in preferred order
+        out_path: Path to save the figure
+        figsize: Optional figure size tuple
+        facecolor: Optional bar fill color (default: dark grey). When provided,
+            overrides DEFAULT_COLOR_MAP for all bars.
+        edgecolor: Optional bar edge color (default: near-black).
+        xlabel: X-axis label (default: 'Emotion').
+        ylabel: Y-axis label (default: 'Time per Participant (seconds)').
+        title: Plot title (default: 'Total Time per Participant per Emotion').
+    """
+    sns.set(style="white", rc={"figure.facecolor": "white"})
+
+    if figsize is None:
+        figsize = (10, 6)
+
+    # Sort by emotion order
+    emotions_sorted = [e for e in emotions if e in time_per_participant]
+    values = [time_per_participant[e] for e in emotions_sorted]
+
+    # Get colors – use facecolor override if provided, else fall back to color map
+    if facecolor is not None:
+        colors = [facecolor] * len(emotions_sorted)
+    else:
+        colors = [DEFAULT_COLOR_MAP.get(e, "steelblue") for e in emotions_sorted]
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    bars = ax.bar(emotions_sorted, values, color=colors, edgecolor=edgecolor, linewidth=1.5)
+
+    # Add value labels on top of bars
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0,
+            height,
+            f"{height:.1f}s",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+        )
+
+    ax.set_xlabel(xlabel, fontsize=12, fontweight="bold")
+    ax.set_ylabel(ylabel, fontsize=12, fontweight="bold")
+    ax.set_title(title, fontsize=14, fontweight="bold")
+    ax.set_ylim(0, max(values) * 1.1 if values else 100)
+
+    # Use display labels from EMOTION_LABELS dict (does not affect analysis)
+    ax.set_xticks(range(len(emotions_sorted)))
+    ax.set_xticklabels(
+        [EMOTION_LABELS.get(e, e) for e in emotions_sorted],
+        rotation=45,
+        ha="right",
+    )
+
+    # Remove grid and box; keep only left and bottom spines
+    ax.grid(False)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(True)
+    ax.spines["bottom"].set_visible(True)
+
+    plt.tight_layout()
+
+    out_dir = out_path.parent
+    if out_dir and not out_dir.exists():
+        out_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+    print(f"Saved time-per-participant histogram to: {out_path}")
+
+
 def main(argv=None):
     """
     Main entry point for the histogram generation script.
@@ -545,7 +659,7 @@ def main(argv=None):
     Can be called from command line or directly from Python:
 
     From command line:
-        python emotion_histograms.py --csv data.csv --out-time time.png --out-participants participants.png
+        python emotion_histograms.py --csv data.csv --out-time time.png --out-participants participants.png --out-time-per-participant time_per_participant.png
 
     From Python:
         from emotion_histograms import main
@@ -568,6 +682,11 @@ def main(argv=None):
         "--out-participants",
         default=DEFAULT_OUT_PARTICIPANTS,
         help="Output image path for participants histogram (PNG). Set empty to skip.",
+    )
+    p.add_argument(
+        "--out-time-per-participant",
+        default="emotion_histogram_time_per_participant.png",
+        help="Output image path for time-per-participant histogram (PNG). Set empty to skip.",
     )
     p.add_argument(
         "--emotions",
@@ -634,11 +753,27 @@ def main(argv=None):
         default="Number of Unique Participants per Emotion",
         help="Title for the participants histogram (default: 'Number of Unique Participants per Emotion').",
     )
+    p.add_argument(
+        "--tpp-xlabel",
+        default="Emotion",
+        help="X-axis label for the time-per-participant histogram (default: 'Emotion').",
+    )
+    p.add_argument(
+        "--tpp-ylabel",
+        default="Time per Participant (seconds)",
+        help="Y-axis label for the time-per-participant histogram (default: 'Time per Participant (seconds)').",
+    )
+    p.add_argument(
+        "--tpp-title",
+        default="Total Time per Participant per Emotion",
+        help="Title for the time-per-participant histogram (default: 'Total Time per Participant per Emotion').",
+    )
     args = p.parse_args(argv)
 
     csv_path = Path(args.csv)
     out_time = Path(args.out_time) if args.out_time else None
     out_participants = Path(args.out_participants) if args.out_participants else None
+    out_tpp = Path(args.out_time_per_participant) if args.out_time_per_participant else None
 
     df = load_csv(csv_path)
 
@@ -710,7 +845,17 @@ def main(argv=None):
             xlabel=args.participants_xlabel, ylabel=args.participants_ylabel, title=args.participants_title,
         )
 
-    if not out_time and not out_participants:
+    if out_tpp:
+        time_per_participant = calculate_time_per_emotion_per_participant(
+            time_per_emotion, participants_per_emotion, emotions
+        )
+        plot_emotion_histogram_time_per_participant(
+            time_per_participant, emotions, out_tpp,
+            facecolor=facecolor, edgecolor=edgecolor,
+            xlabel=args.tpp_xlabel, ylabel=args.tpp_ylabel, title=args.tpp_title,
+        )
+
+    if not out_time and not out_participants and not out_tpp:
         print(
             "No output paths specified (all skipped). Nothing to do.", file=sys.stderr
         )
