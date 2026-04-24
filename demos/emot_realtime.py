@@ -28,40 +28,40 @@ EMOTION_COLORS = {
 def process_faces(image, skip_frames=1, frame_count=0):
     """
     Process faces in the image for emotion detection.
-    
+
     Args:
         image: Input frame from video capture
         skip_frames: Number of frames to skip between detections
         frame_count: Current frame count
-    
+
     Returns:
         tuple: (processed_image, faces_detected, emotions_data)
     """
     # Check if we should skip this frame
     if frame_count % skip_frames != 0:
         return image, False, None
-    
+
     try:
         faces = DeepFace.extract_faces(image, enforce_detection=False)
-        
+
         if not faces or len(faces) == 0:
             return image, False, None
-        
+
         emotions_data = []
-        
+
         for face in faces:
             facial_area = face['facial_area']
             x = facial_area['x']
             y = facial_area['y']
             w = facial_area['w']
             h = facial_area['h']
-            
+
             try:
                 # Extract the face region and analyze emotion
                 face_region = image[y:y+h, x:x+w]
                 emotions = DeepFace.analyze(face_region, actions=['emotion'], enforce_detection=False)
                 emotion_dict = emotions[0]['emotion']
-                
+
                 emotions_data.append({
                     'coords': (x, y, w, h),
                     'emotions': emotion_dict
@@ -73,9 +73,9 @@ def process_faces(image, skip_frames=1, frame_count=0):
                 # Log other errors but continue processing
                 print(f"Error analyzing emotion: {e}")
                 continue
-        
+
         return image, len(emotions_data) > 0, emotions_data
-    
+
     except FaceNotDetected:
         return image, False, None
     except Exception as e:
@@ -86,66 +86,86 @@ def process_faces(image, skip_frames=1, frame_count=0):
 def process_pose(image, pose_detector, skip_frames=1, frame_count=0):
     """
     Process pose estimation on the image.
-    
+
     Args:
         image: Input frame from video capture
         pose_detector: MediaPipe Pose detector
         skip_frames: Number of frames to skip between detections
         frame_count: Current frame count
-    
+
     Returns:
         tuple: (image, pose_detected, pose_landmarks)
     """
     if not MEDIAPIPE_AVAILABLE or pose_detector is None:
         return image, False, None
-    
+
     # Check if we should skip this frame
     if frame_count % skip_frames != 0:
         return image, False, None
-    
+
     try:
         # Convert BGR to RGB
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = pose_detector.process(image_rgb)
-        
+
         if results.pose_landmarks is None:
             return image, False, None
-        
+
         return image, True, results.pose_landmarks
-    
+
     except Exception as e:
         print(f"Error in pose detection: {e}")
         return image, False, None
 
 
-def draw_emotion_bars(image, x, y, w, h, emotions_dict, alpha_bar=0.7, bar_width=100, bar_height=140):
+def draw_emotion_bars(
+    image,
+    x,
+    y,
+    w,
+    h,
+    emotions_dict,
+    alpha_bar=0.7,
+    bar_width=100,
+    bar_height=140,
+    overlay_scale=1.0,
+):
     """
     Draw emotion probability bars to the right of a face bounding box.
-    
+
     Args:
         image: Input frame
         x, y, w, h: Face bounding box coordinates
         emotions_dict: Dictionary of emotions and their probabilities (0-100)
         alpha_bar: Transparency level (0-1)
-        bar_width: Width of the bar chart
-        bar_height: Height of the bar chart
-    
+        bar_width: Base width of the bar chart
+        bar_height: Base height of the bar chart
+        overlay_scale: Visual scale factor for the whole overlay
+
     Returns:
         Modified image with emotion bars
     """
+    bar_width = max(20, int(bar_width * overlay_scale))
+    bar_height = max(28, int(bar_height * overlay_scale))
+    margin = max(4, int(10 * overlay_scale))
+    label_x_padding = max(2, int(3 * overlay_scale))
+    border_thickness = max(1, int(round(overlay_scale)))
+    font_scale = max(0.3, 0.35 * overlay_scale)
+    font_thickness = max(1, int(round(overlay_scale)))
+
     # Get image dimensions
     img_height, img_width = image.shape[:2]
-    
+
     # Position bars to the right of the bounding box
-    bar_x = x + w + 10
+    bar_x = x + w + margin
     bar_y = y
-    
+
     # Ensure bars don't go off-screen
     if bar_x + bar_width > img_width:
-        bar_x = max(10, x - bar_width - 10)
+        bar_x = max(margin, x - bar_width - margin)
     if bar_y + bar_height > img_height:
-        bar_y = max(10, img_height - bar_height)
-    
+        bar_y = max(margin, img_height - bar_height - margin)
+
     # Emotion colors (BGR format)
     emotion_colors = {
         'angry': (0, 0, 255),      # Red
@@ -156,140 +176,158 @@ def draw_emotion_bars(image, x, y, w, h, emotions_dict, alpha_bar=0.7, bar_width
         'surprise': (0, 255, 0),   # Green
         'neutral': (128, 128, 128) # Gray
     }
-    
+
     # Sort emotions by name for consistent display
     sorted_emotions = sorted(emotions_dict.items())
     num_emotions = len(sorted_emotions)
-    
+
     if num_emotions == 0:
         return image
-    
+
     # Calculate bar spacing
     bar_spacing = bar_height / num_emotions
     bar_individual_height = int(bar_spacing * 0.85)
-    
+
     # Create overlay surface for transparency
     overlay = image.copy()
-    
+
     for idx, (emotion_name, emotion_value) in enumerate(sorted_emotions):
         # Calculate bar position
         current_y = int(bar_y + idx * bar_spacing + (bar_spacing - bar_individual_height) / 2)
         bar_bottom = current_y + bar_individual_height
-        
+
         # Draw background box for each emotion bar (dark background)
-        cv2.rectangle(overlay, (bar_x, current_y), (bar_x + bar_width, bar_bottom), 
+        cv2.rectangle(overlay, (bar_x, current_y), (bar_x + bar_width, bar_bottom),
                      (40, 40, 40), -1)
-        
+
         # Draw outline (light border)
-        cv2.rectangle(overlay, (bar_x, current_y), (bar_x + bar_width, bar_bottom), 
-                     (200, 200, 200), 1)
-        
+        cv2.rectangle(overlay, (bar_x, current_y), (bar_x + bar_width, bar_bottom),
+                     (200, 200, 200), border_thickness)
+
         # Normalize emotion value (DeepFace returns 0-100)
         normalized_value = emotion_value / 100.0
         fill_width = int(normalized_value * bar_width)
-        
+
         # Draw filled portion
         color = emotion_colors.get(emotion_name.lower(), (128, 128, 128))
         if fill_width > 0:
-            cv2.rectangle(overlay, (bar_x, current_y), (bar_x + fill_width, bar_bottom), 
+            cv2.rectangle(overlay, (bar_x, current_y), (bar_x + fill_width, bar_bottom),
                          color, -1)
-        
+
         # Draw emotion label (short abbreviation)
-        label = emotion_name[:3].upper()
-        cv2.putText(overlay, label, (bar_x + 3, current_y + bar_individual_height - 2),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
-    
+        label = emotion_name.upper()
+        text_y = current_y + max(bar_individual_height - 2, int(10 * overlay_scale))
+        cv2.putText(
+            overlay,
+            label,
+            (bar_x + label_x_padding, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            font_scale,
+            (255, 255, 255),
+            font_thickness,
+        )
+
     # Blend overlay with original image based on alpha
     cv2.addWeighted(overlay, alpha_bar, image, 1 - alpha_bar, 0, image)
-    
+
     return image
 
 
 def draw_pose(image, pose_landmarks, alpha_pose=0.7):
     """
     Draw pose skeleton on the image.
-    
+
     Args:
         image: Input frame
         pose_landmarks: MediaPipe pose landmarks
         alpha_pose: Transparency level (0-1)
-    
+
     Returns:
         Modified image with pose skeleton
     """
     if not MEDIAPIPE_AVAILABLE or mp_pose is None or pose_landmarks is None:
         return image
-    
+
     img_height, img_width = image.shape[:2]
-    
+
     # Create overlay for pose
     overlay = image.copy()
-    
+
     # Draw landmarks (joints)
     for landmark in pose_landmarks.landmark:
         x = int(landmark.x * img_width)
         y = int(landmark.y * img_height)
-        
+
         # Only draw if landmark is visible
         if landmark.visibility > 0.5:
             # Color green for visible joints
             cv2.circle(overlay, (x, y), 4, (0, 255, 0), -1)
             cv2.circle(overlay, (x, y), 4, (255, 255, 255), 1)
-    
+
     # Draw connections between joints
     try:
         connections = mp_pose.POSE_CONNECTIONS
         for connection in connections:
             start_idx = connection[0]
             end_idx = connection[1]
-            
+
             start = pose_landmarks.landmark[start_idx]
             end = pose_landmarks.landmark[end_idx]
-            
+
             # Check visibility
             if start.visibility > 0.5 and end.visibility > 0.5:
                 start_x = int(start.x * img_width)
                 start_y = int(start.y * img_height)
                 end_x = int(end.x * img_width)
                 end_y = int(end.y * img_height)
-                
+
                 # Draw connection line
                 cv2.line(overlay, (start_x, start_y), (end_x, end_y), (0, 255, 0), 2)
     except AttributeError:
         # Fallback if POSE_CONNECTIONS not available
         print("Warning: Could not access POSE_CONNECTIONS")
-    
+
     # Blend overlay with original image
     cv2.addWeighted(overlay, alpha_pose, image, 1 - alpha_pose, 0, image)
-    
+
     return image
 
 
-def draw_overlays(image, emotions_data, alpha_bar=0.7):
+def draw_overlays(image, emotions_data, alpha_bar=0.7, overlay_scale=1.0):
     """
     Draw bounding boxes and emotion bars on the image.
-    
+
     Args:
         image: Input frame
         emotions_data: List of detected faces and emotions
         alpha_bar: Transparency level for emotion bars (0-1)
-    
+        overlay_scale: Visual scale factor for the emotion bar overlay
+
     Returns:
         Processed image with overlays
     """
     if emotions_data is None:
         return image
-    
+
     for face_data in emotions_data:
         x, y, w, h = face_data['coords']
         emotions = face_data['emotions']
-        
+
         # Draw bounding box
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        
+
         # Draw emotion probability bars
-        image = draw_emotion_bars(image, x, y, w, h, emotions, alpha_bar=alpha_bar)
-    
+        image = draw_emotion_bars(
+            image,
+            x,
+            y,
+            w,
+            h,
+            emotions,
+            alpha_bar=alpha_bar,
+            overlay_scale=overlay_scale,
+        )
+
     return image
 
 
@@ -351,47 +389,57 @@ def main():
         default=1,
         help='Number of frames to skip for pose detection (default: 1)'
     )
-    
+    parser.add_argument(
+        '--emotion-overlay-scale',
+        type=float,
+        default=1.0,
+        help='Visual scale factor for emotion bar overlays (default: 1.0)'
+    )
+
     args = parser.parse_args()
-    
+
     # Validate alpha values
     if not 0.0 <= args.alpha_bar <= 1.0:
         print("Warning: alpha_bar should be between 0.0 and 1.0. Using default 0.7")
         args.alpha_bar = 0.7
-    
+
     if not 0.0 <= args.alpha_pose <= 1.0:
         print("Warning: alpha_pose should be between 0.0 and 1.0. Using default 0.7")
         args.alpha_pose = 0.7
-    
+
+    if args.emotion_overlay_scale <= 0.0:
+        print("Warning: emotion_overlay_scale should be greater than 0. Using default 1.0")
+        args.emotion_overlay_scale = 1.0
+
     # Open camera
     cap = cv2.VideoCapture(args.camera)
-    
+
     if not cap.isOpened():
         print(f"Error: Could not open camera device {args.camera}")
         return
-    
+
     # Set camera codec to MJPEG for better compatibility with high resolutions
     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     cap.set(cv2.CAP_PROP_FOURCC, fourcc)
-    
+
     # Set camera resolution and FPS
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
     cap.set(cv2.CAP_PROP_FPS, args.fps)
-    
+
     # Verify actual resolution
     actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     actual_fps = cap.get(cv2.CAP_PROP_FPS)
-    
+
     if actual_width != args.width or actual_height != args.height:
         print(f"Warning: Requested resolution {args.width}x{args.height} but camera returned {actual_width}x{actual_height}")
     else:
         print(f"Camera resolution set to {actual_width}x{actual_height}")
-    
+
     if actual_fps != args.fps:
         print(f"Note: Requested FPS {args.fps} but camera set to {actual_fps:.1f}")
-    
+
     # Initialize MediaPipe Pose
     pose_detector = None
     if args.enable_pose:
@@ -407,40 +455,41 @@ def main():
                 min_tracking_confidence=0.5
             )
             print(f"Pose estimation enabled (skip frames: {args.skip_pose_frames})")
-    
+
     # Calculate frame timing
     frame_delay = int(1000 / args.fps)  # milliseconds
-    
+
     frame_count = 0
     start_time = time.time()
     processed_count = 0
     pose_count = 0
     last_emotions_data = None
     last_pose_landmarks = None
-    
+
     print(f"Starting real-time emotion detection and pose estimation...")
     print(f"Skip frames (emotion): {args.skipframes}")
     print(f"Target FPS: {args.fps}")
     print(f"Emotion bar opacity: {args.alpha_bar}")
+    print(f"Emotion overlay scale: {args.emotion_overlay_scale}")
     if args.enable_pose:
         print(f"Pose skeleton opacity: {args.alpha_pose}")
     print(f"Press 'q' to quit, 'p' to toggle pose")
-    
+
     try:
         while True:
             ret, frame = cap.read()
-            
+
             if not ret:
                 print("Error: Failed to read frame from camera")
                 break
-            
+
             # Process faces (with frame skipping)
             frame, faces_detected, emotions_data = process_faces(
-                frame, 
+                frame,
                 skip_frames=args.skipframes,
                 frame_count=frame_count
             )
-            
+
             # Process pose if enabled
             if args.enable_pose and pose_detector:
                 frame, pose_detected, pose_landmarks = process_pose(
@@ -449,24 +498,29 @@ def main():
                     skip_frames=args.skip_pose_frames,
                     frame_count=frame_count
                 )
-                
+
                 if pose_detected and pose_landmarks:
                     last_pose_landmarks = pose_landmarks
                     pose_count += 1
-            
+
             # Update last emotions data if new detection occurred
             if faces_detected and emotions_data:
                 last_emotions_data = emotions_data
                 processed_count += 1
-            
+
             # Draw emotion overlays if we have emotions data
             if last_emotions_data:
-                frame = draw_overlays(frame, last_emotions_data, alpha_bar=args.alpha_bar)
-            
+                frame = draw_overlays(
+                    frame,
+                    last_emotions_data,
+                    alpha_bar=args.alpha_bar,
+                    overlay_scale=args.emotion_overlay_scale,
+                )
+
             # Draw pose overlay if we have pose data
             if args.enable_pose and last_pose_landmarks:
                 frame = draw_pose(frame, last_pose_landmarks, alpha_pose=args.alpha_pose)
-            
+
             # Add FPS counter
             elapsed = time.time() - start_time
             if elapsed > 0:
@@ -483,10 +537,10 @@ def main():
                     (255, 255, 255),
                     2
                 )
-            
+
             # Display frame
             cv2.imshow('Emotion Detection & Pose Estimation - Press Q to Quit', frame)
-            
+
             # Handle keyboard input
             key = cv2.waitKey(frame_delay) & 0xFF
             if key == ord('q'):
@@ -507,9 +561,9 @@ def main():
                         print("Pose estimation disabled")
                 else:
                     print("MediaPipe not available")
-            
+
             frame_count += 1
-    
+
     except KeyboardInterrupt:
         print("\nInterrupted by user")
     except Exception as e:
@@ -517,10 +571,10 @@ def main():
     finally:
         cap.release()
         cv2.destroyAllWindows()
-        
+
         if pose_detector:
             pose_detector.close()
-        
+
         # Print statistics
         elapsed = time.time() - start_time
         print(f"\nSession Statistics:")
