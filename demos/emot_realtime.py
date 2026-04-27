@@ -1,6 +1,8 @@
 import argparse
+import math
 import threading
 import time
+from collections import deque
 
 import cv2
 import numpy as np
@@ -18,13 +20,15 @@ except ImportError:
 
 EMOTION_COLORS = {
     "angry": (0, 0, 255),
-    "disgust": (0, 165, 0),
+    "disgust": (115, 150, 232),
     "fear": (128, 0, 128),
-    "happy": (0, 255, 255),
+    "happy": (0, 165, 0),
     "sad": (255, 0, 0),
-    "surprise": (0, 255, 0),
+    "surprise": (0, 255, 255),
     "neutral": (128, 128, 128),
 }
+
+EMOTION_ORDER = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
 
 
 def update_ema(current_value, new_value, alpha=0.2):
@@ -267,6 +271,141 @@ def draw_overlays(image, emotions_data, alpha_bar=0.7, overlay_scale=1.0):
     return image
 
 
+def compute_normalized_emotion_distribution(emotions_data):
+    """Sum all detected subjects' emotion scores and normalize the total to 1.0."""
+    if not emotions_data:
+        return None
+
+    totals = {}
+    for face_data in emotions_data:
+        emotions = face_data.get("emotions", {})
+        for emotion_name, emotion_value in emotions.items():
+            try:
+                value = max(0.0, float(emotion_value))
+            except (TypeError, ValueError):
+                continue
+            key = emotion_name.lower()
+            totals[key] = totals.get(key, 0.0) + value
+
+    total_score = sum(totals.values())
+    if total_score <= 0.0:
+        return None
+
+    return {emotion_name: value / total_score for emotion_name, value in totals.items()}
+
+
+def get_emotion_plot_names(history, current_distribution=None):
+    """Return stable emotion names for plotting, preserving the canonical order."""
+    emotion_names = set()
+    if current_distribution:
+        emotion_names.update(current_distribution.keys())
+    for _, sample in history:
+        emotion_names.update(sample.keys())
+
+    ordered_names = [emotion for emotion in EMOTION_ORDER if emotion in emotion_names]
+    ordered_names.extend(sorted(emotion_names - set(ordered_names)))
+    return ordered_names or EMOTION_ORDER
+
+
+def update_filtered_emotion_distribution(previous, target, dt, smoothing_s):
+    """Move the displayed plot value toward the latest emotion result each frame."""
+    target = target or {}
+    emotion_names = set(EMOTION_ORDER)
+    emotion_names.update(target.keys())
+    if previous:
+        emotion_names.update(previous.keys())
+
+    if previous is None or smoothing_s <= 0.0:
+        return {emotion_name: target.get(emotion_name, 0.0) for emotion_name in emotion_names}
+
+    alpha = 1.0 - math.exp(-max(0.0, dt) / smoothing_s)
+    return {
+        emotion_name: (
+            previous.get(emotion_name, 0.0) * (1.0 - alpha)
+            + target.get(emotion_name, 0.0) * alpha
+        )
+        for emotion_name in emotion_names
+    }
+
+
+def prune_emotion_plot_history(history, now, history_seconds):
+    """Keep only samples inside the requested real-time plot window."""
+    cutoff = now - history_seconds
+    while history and history[0][0] < cutoff:
+        history.popleft()
+
+
+def draw_emotion_timeseries_plot(
+    image,
+    history,
+    now,
+    history_seconds,
+    plot_height=140,
+    alpha=0.6,
+    current_distribution=None,
+):
+    """Draw a rolling oscilloscope-style emotion probability plot at the bottom."""
+    if plot_height <= 0 or len(history) < 2:
+        return image
+
+    img_height, img_width = image.shape[:2]
+    plot_height = min(plot_height, max(40, img_height - 50))
+    plot_y = img_height - plot_height
+    padding_top = 18
+    padding_bottom = 12
+    graph_top = plot_y + padding_top
+    graph_bottom = img_height - padding_bottom
+    graph_height = max(1, graph_bottom - graph_top)
+
+    overlay = image.copy()
+    cv2.rectangle(overlay, (0, plot_y), (img_width, img_height), (15, 15, 15), -1)
+
+    for fraction in (0.25, 0.5, 0.75):
+        y = int(graph_bottom - fraction * graph_height)
+        cv2.line(overlay, (0, y), (img_width, y), (70, 70, 70), 1)
+
+    cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
+
+    emotion_names = get_emotion_plot_names(history, current_distribution)
+    time_start = now - history_seconds
+
+    for emotion_name in emotion_names:
+        color = EMOTION_COLORS.get(emotion_name, (220, 220, 220))
+        points = []
+        for sample_time, sample in history:
+            value = max(0.0, min(float(sample.get(emotion_name, 0.0)), 1.0))
+            elapsed_fraction = (sample_time - time_start) / history_seconds
+            x = int(max(0.0, min(elapsed_fraction, 1.0)) * (img_width - 1))
+            y = int(graph_bottom - value * graph_height)
+            points.append((x, y))
+
+        if len(points) >= 2:
+            cv2.polylines(image, [np.array(points, dtype=np.int32)], False, color, 2)
+
+    legend_x = 8
+    legend_y = plot_y + 13
+    for emotion_name in emotion_names:
+        color = EMOTION_COLORS.get(emotion_name, (220, 220, 220))
+        value = 0.0 if current_distribution is None else current_distribution.get(emotion_name, 0.0)
+        label = f"{emotion_name[:3].upper()} {value * 100:4.1f}"
+        cv2.putText(
+            image,
+            label,
+            (legend_x, legend_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            color,
+            1,
+            cv2.LINE_AA,
+        )
+        legend_x += 72
+        if legend_x > img_width - 70:
+            legend_x = 8
+            legend_y += 14
+
+    return image
+
+
 def emotion_worker_loop(shared_state, state_lock, stop_event):
     """Run DeepFace emotion inference in the background on the latest submitted frame."""
     last_processed_frame_id = -1
@@ -395,6 +534,39 @@ def main():
         default=0.5,
         help="How long to keep the last pose overlay visible in seconds (default: 0.5)",
     )
+    parser.add_argument(
+        "--hide-emotion-plot",
+        action="store_true",
+        default=False,
+        help="Hide the rolling emotion probability plot at the bottom",
+    )
+    parser.add_argument(
+        "--emotion-plot-height",
+        type=int,
+        default=140,
+        help="Height of the rolling emotion probability plot in pixels (default: 140)",
+    )
+    parser.add_argument(
+        "--emotion-plot-history",
+        type=float,
+        default=12.0,
+        help="Visible history window for the rolling emotion plot in seconds (default: 12.0)",
+    )
+    parser.add_argument(
+        "--emotion-plot-alpha",
+        type=float,
+        default=0.6,
+        help="Opacity of the emotion plot background (0.0-1.0, default: 0.6)",
+    )
+    parser.add_argument(
+        "--emotion-plot-smoothing",
+        type=float,
+        default=0.35,
+        help=(
+            "EMA response time for the emotion plot in seconds; "
+            "use 0 to disable filtering (default: 0.35)"
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -425,6 +597,22 @@ def main():
     if args.pose_ttl < 0.0:
         print("Warning: pose_ttl should be non-negative. Using default 0.5")
         args.pose_ttl = 0.5
+
+    if args.emotion_plot_height < 0:
+        print("Warning: emotion_plot_height should be non-negative. Using default 140")
+        args.emotion_plot_height = 140
+
+    if args.emotion_plot_history <= 0.0:
+        print("Warning: emotion_plot_history should be greater than 0. Using default 12.0")
+        args.emotion_plot_history = 12.0
+
+    if not 0.0 <= args.emotion_plot_alpha <= 1.0:
+        print("Warning: emotion_plot_alpha should be between 0.0 and 1.0. Using default 0.6")
+        args.emotion_plot_alpha = 0.6
+
+    if args.emotion_plot_smoothing < 0.0:
+        print("Warning: emotion_plot_smoothing should be non-negative. Using default 0.35")
+        args.emotion_plot_smoothing = 0.35
 
     cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
@@ -481,6 +669,9 @@ def main():
     pose_inference_ms_ema = None
     last_emotion_submit_at = 0.0
     last_pose_process_at = 0.0
+    emotion_plot_history = deque()
+    filtered_emotion_distribution = None
+    last_plot_update_at = time.monotonic()
 
     state_lock = threading.Lock()
     stop_event = threading.Event()
@@ -508,6 +699,10 @@ def main():
     print(f"Emotion result TTL: {args.emotion_ttl:.2f} s")
     print(f"Emotion bar opacity: {args.alpha_bar}")
     print(f"Emotion overlay scale: {args.emotion_overlay_scale}")
+    if not args.hide_emotion_plot:
+        print(f"Emotion plot history: {args.emotion_plot_history:.1f} s")
+        print(f"Emotion plot height: {args.emotion_plot_height} px")
+        print(f"Emotion plot smoothing: {args.emotion_plot_smoothing:.2f} s")
     if args.enable_pose:
         print(f"Pose update rate: {args.pose_fps:.1f} Hz")
         print(f"Pose result TTL: {args.pose_ttl:.2f} s")
@@ -529,7 +724,7 @@ def main():
             )
             if should_submit_emotion:
                 with state_lock:
-                    shared_state["submitted_frame"] = frame
+                    shared_state["submitted_frame"] = frame.copy()
                     shared_state["submitted_frame_id"] += 1
                 last_emotion_submit_at = now
 
@@ -555,11 +750,15 @@ def main():
                 emotion_inference_ms_ema = shared_state["emotion_inference_ms_ema"]
                 emotion_updates = shared_state["emotion_updates"]
 
+            current_emotion_distribution = None
             if (
                 last_emotions_data is not None
                 and last_emotion_result_at is not None
                 and (now - last_emotion_result_at) <= args.emotion_ttl
             ):
+                current_emotion_distribution = compute_normalized_emotion_distribution(
+                    last_emotions_data
+                )
                 frame = draw_overlays(
                     frame,
                     last_emotions_data,
@@ -574,6 +773,28 @@ def main():
                 and (now - last_pose_result_at) <= args.pose_ttl
             ):
                 frame = draw_pose(frame, last_pose_landmarks, alpha_pose=args.alpha_pose)
+
+            plot_dt = now - last_plot_update_at
+            last_plot_update_at = now
+            filtered_emotion_distribution = update_filtered_emotion_distribution(
+                filtered_emotion_distribution,
+                current_emotion_distribution,
+                plot_dt,
+                args.emotion_plot_smoothing,
+            )
+            emotion_plot_history.append((now, filtered_emotion_distribution))
+            prune_emotion_plot_history(emotion_plot_history, now, args.emotion_plot_history)
+
+            if not args.hide_emotion_plot:
+                frame = draw_emotion_timeseries_plot(
+                    frame,
+                    emotion_plot_history,
+                    now,
+                    args.emotion_plot_history,
+                    plot_height=args.emotion_plot_height,
+                    alpha=args.emotion_plot_alpha,
+                    current_distribution=filtered_emotion_distribution,
+                )
 
             elapsed = time.time() - start_time
             if elapsed > 0:
