@@ -1,8 +1,11 @@
 import argparse
 import math
+import shutil
+import subprocess
 import threading
 import time
 from collections import deque
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -406,6 +409,52 @@ def draw_emotion_timeseries_plot(
     return image
 
 
+def resolve_media_path(media_path):
+    """Validate an optional media path for ffplay playback."""
+    if media_path is None:
+        return None
+
+    path = Path(media_path).expanduser()
+    if not path.is_file():
+        print(f"Warning: media path is not a file: {path}")
+        return None
+
+    if shutil.which("ffplay") is None:
+        print("Warning: ffplay is not available on PATH")
+        return None
+
+    print(f"Media playback ready: {path}")
+    return path
+
+
+def start_media_player(media_path):
+    """Start ffplay for the configured media file."""
+    if media_path is None:
+        print("No media video loaded")
+        return None
+
+    return subprocess.Popen(
+        ["ffplay", "-autoexit", "-loglevel", "error", str(media_path)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def stop_media_player(media_process):
+    """Stop a running ffplay process."""
+    if media_process is None or media_process.poll() is not None:
+        return None
+
+    media_process.terminate()
+    try:
+        media_process.wait(timeout=2.0)
+    except subprocess.TimeoutExpired:
+        media_process.kill()
+        media_process.wait(timeout=1.0)
+
+    return None
+
+
 def emotion_worker_loop(shared_state, state_lock, stop_event):
     """Run DeepFace emotion inference in the background on the latest submitted frame."""
     last_processed_frame_id = -1
@@ -567,6 +616,12 @@ def main():
             "use 0 to disable filtering (default: 0.35)"
         ),
     )
+    parser.add_argument(
+        "--media",
+        type=str,
+        default=None,
+        help="Optional path to a media file to play with ffplay when pressing 'v'",
+    )
 
     args = parser.parse_args()
 
@@ -641,6 +696,9 @@ def main():
     if actual_fps != args.fps:
         print(f"Note: Requested FPS {args.fps} but camera set to {actual_fps:.1f}")
 
+    media_path = resolve_media_path(args.media)
+    media_process = None
+
     pose_detector = None
     if args.enable_pose:
         if not MEDIAPIPE_AVAILABLE:
@@ -707,7 +765,7 @@ def main():
         print(f"Pose update rate: {args.pose_fps:.1f} Hz")
         print(f"Pose result TTL: {args.pose_ttl:.2f} s")
         print(f"Pose skeleton opacity: {args.alpha_pose}")
-    print("Press 'q' to quit, 'p' to toggle pose")
+    print("Press 'q' to quit, 'p' to toggle pose, 'v' to toggle media video")
 
     try:
         while True:
@@ -836,6 +894,16 @@ def main():
                         print("Pose estimation disabled")
                 else:
                     print("MediaPipe not available")
+            if key == ord("v"):
+                if media_path is not None:
+                    if media_process is None or media_process.poll() is not None:
+                        media_process = start_media_player(media_path)
+                        print("Media playback started")
+                    else:
+                        media_process = stop_media_player(media_process)
+                        print("Media playback stopped")
+                else:
+                    print("No media video loaded")
 
             frame_count += 1
 
@@ -846,6 +914,7 @@ def main():
     finally:
         stop_event.set()
         emotion_thread.join(timeout=1.0)
+        media_process = stop_media_player(media_process)
         cap.release()
         cv2.destroyAllWindows()
 
@@ -869,3 +938,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# uv run emot_realtime.py --width 1920 --height 1080 --emotion-overlay-scale 2 --emotion-fps 5 --emotion-ttl 1.2 --camera 0 --emotion-plot-height 180 --emotion-plot-history 20 --emotion-plot-smoothing 2 --media "/home/labadmin/aixlab/outreach/Baby Laughing Hysterically at Ripping Paper (Original).mp4"
