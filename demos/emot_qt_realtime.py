@@ -152,6 +152,26 @@ def compute_normalized_emotion_distribution(emotions_data):
     return {emotion_name: value / total_score for emotion_name, value in totals.items()}
 
 
+def dominant_emotion(distribution):
+    if not distribution:
+        return None
+    return max(distribution.items(), key=lambda item: item[1])[0]
+
+
+def normalized_entropy(distribution):
+    if not distribution:
+        return None
+
+    values = np.array([max(0.0, distribution.get(emotion, 0.0)) for emotion in EMOTION_ORDER])
+    total = values.sum()
+    if total <= 0.0:
+        return None
+
+    values = values / total
+    values = np.clip(values, 1e-10, 1.0)
+    return float(-np.sum(values * np.log(values)) / math.log(len(EMOTION_ORDER)))
+
+
 def update_filtered_emotion_distribution(previous, target, dt, smoothing_s):
     target = target or {}
     emotion_names = set(EMOTION_ORDER)
@@ -241,6 +261,8 @@ class RealtimeCanvas(QWidget):
         self.plot_history = deque()
         self.current_distribution = None
         self.status_text = ""
+        self.summary_visible = False
+        self.summary_stats = None
         self.setMinimumSize(640, 480)
 
     def set_camera_frame(self, image, frame_size):
@@ -266,6 +288,15 @@ class RealtimeCanvas(QWidget):
         self.status_text = status_text
         self.update()
 
+    def set_summary_visible(self, visible):
+        self.summary_visible = visible
+        self.update()
+
+    def set_summary_stats(self, stats):
+        self.summary_stats = stats
+        if self.summary_visible:
+            self.update()
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
@@ -290,6 +321,9 @@ class RealtimeCanvas(QWidget):
 
         if not self.args.hide_emotion_plot:
             self.draw_emotion_plot(painter)
+
+        if self.summary_visible and self.summary_stats is not None:
+            self.draw_summary(painter)
 
         if self.status_text:
             self.draw_status(painter)
@@ -449,6 +483,80 @@ class RealtimeCanvas(QWidget):
         painter.setPen(QColor(255, 255, 255))
         painter.drawText(QPointF(10, 30), self.status_text)
 
+    def draw_summary(self, painter):
+        stats = self.summary_stats
+        panel_width = min(620, max(360, self.width() - 80))
+        panel_height = 320
+        x = (self.width() - panel_width) / 2
+        y = max(44, (self.height() - panel_height) / 2)
+        panel = QRectF(x, y, panel_width, panel_height)
+
+        painter.save()
+        painter.setOpacity(0.88)
+        painter.fillRect(panel, QColor(18, 18, 18))
+        painter.restore()
+
+        painter.setPen(QPen(QColor(230, 230, 230), 1))
+        painter.drawRect(panel)
+
+        title_font = painter.font()
+        title_font.setPointSize(14)
+        title_font.setBold(True)
+        painter.setFont(title_font)
+        painter.setPen(QColor(255, 255, 255))
+        painter.drawText(QPointF(x + 18, y + 30), "Emotion Summary")
+
+        body_font = painter.font()
+        body_font.setPointSize(10)
+        body_font.setBold(False)
+        painter.setFont(body_font)
+
+        runtime = stats.get("runtime_s", 0.0)
+        sample_count = stats.get("sample_count", 0)
+        face_observations = stats.get("face_observations", 0)
+        dominant_total = stats.get("dominant_total", 0)
+        avg_entropy = stats.get("avg_entropy")
+        avg_faces = stats.get("avg_faces")
+
+        lines = [
+            f"Runtime: {runtime:.1f}s",
+            f"Emotion time points: {sample_count}",
+            f"Face observations: {face_observations}",
+            f"Dominant samples: {dominant_total}",
+            f"Avg faces per emotion update: {'--' if avg_faces is None else f'{avg_faces:.2f}'}",
+            f"Avg entropy: {'--' if avg_entropy is None else f'{avg_entropy:.3f}'}",
+        ]
+        text_y = y + 58
+        for line in lines:
+            painter.drawText(QPointF(x + 18, text_y), line)
+            text_y += 19
+
+        bar_x = x + 250
+        bar_y = y + 58
+        bar_width = panel_width - 278
+        bar_height = 16
+        bar_gap = 12
+        avg_distribution = stats.get("avg_distribution", {})
+        dominant_counts = stats.get("dominant_counts", {})
+
+        painter.drawText(QPointF(bar_x, bar_y - 10), "Average probability")
+        for idx, emotion in enumerate(EMOTION_ORDER):
+            value = avg_distribution.get(emotion, 0.0)
+            current_y = bar_y + idx * (bar_height + bar_gap)
+            painter.fillRect(QRectF(bar_x, current_y, bar_width, bar_height), QColor(45, 45, 45))
+            painter.fillRect(
+                QRectF(bar_x, current_y, bar_width * value, bar_height),
+                EMOTION_COLORS.get(emotion, QColor(180, 180, 180)),
+            )
+            painter.setPen(QColor(235, 235, 235))
+            painter.drawText(
+                QPointF(bar_x + 4, current_y + 12),
+                f"{emotion[:3].upper()} {value * 100:4.1f}% | dom {dominant_counts.get(emotion, 0)}",
+            )
+
+        painter.setPen(QColor(200, 200, 200))
+        painter.drawText(QPointF(x + 18, y + panel_height - 18), "Press S to hide")
+
 
 class EmotionQtWindow(QMainWindow):
     def __init__(self, args):
@@ -502,6 +610,13 @@ class EmotionQtWindow(QMainWindow):
         self.filtered_emotion_distribution = None
         self.last_plot_update_at = time.monotonic()
         self.emotion_plot_history = deque()
+        self.last_counted_emotion_update = 0
+        self.summary_sample_count = 0
+        self.summary_face_observations = 0
+        self.summary_emotion_totals = {emotion: 0.0 for emotion in EMOTION_ORDER}
+        self.summary_dominant_counts = {emotion: 0 for emotion in EMOTION_ORDER}
+        self.summary_entropy_total = 0.0
+        self.summary_entropy_count = 0
 
         self.state_lock = threading.Lock()
         self.stop_event = threading.Event()
@@ -526,7 +641,7 @@ class EmotionQtWindow(QMainWindow):
         self.timer.timeout.connect(self.on_frame)
         self.timer.start(self.frame_delay_ms)
 
-        print("Press 'q' to quit, 'p' to toggle pose, 'v' to toggle media video")
+        print("Press 'q' to quit, 'p' to toggle pose, 'v' to toggle media video, 's' to toggle summary")
 
     def resolve_media_path(self, media_path):
         if media_path is None:
@@ -606,7 +721,56 @@ class EmotionQtWindow(QMainWindow):
             else:
                 self.enable_pose()
             return
+        if key == Qt.Key.Key_S:
+            self.canvas.set_summary_visible(not self.canvas.summary_visible)
+            print(f"Summary {'shown' if self.canvas.summary_visible else 'hidden'}")
+            return
         super().keyPressEvent(event)
+
+    def record_summary_sample(self, distribution, emotions_data):
+        if not distribution:
+            return
+
+        self.summary_sample_count += 1
+        self.summary_face_observations += len(emotions_data or [])
+
+        for emotion in EMOTION_ORDER:
+            self.summary_emotion_totals[emotion] += distribution.get(emotion, 0.0)
+
+        dominant = dominant_emotion(distribution)
+        if dominant is not None:
+            self.summary_dominant_counts[dominant] = self.summary_dominant_counts.get(dominant, 0) + 1
+
+        entropy = normalized_entropy(distribution)
+        if entropy is not None:
+            self.summary_entropy_total += entropy
+            self.summary_entropy_count += 1
+
+    def build_summary_stats(self):
+        if self.summary_sample_count > 0:
+            avg_distribution = {
+                emotion: self.summary_emotion_totals.get(emotion, 0.0) / self.summary_sample_count
+                for emotion in EMOTION_ORDER
+            }
+            avg_faces = self.summary_face_observations / self.summary_sample_count
+        else:
+            avg_distribution = {emotion: 0.0 for emotion in EMOTION_ORDER}
+            avg_faces = None
+
+        avg_entropy = None
+        if self.summary_entropy_count > 0:
+            avg_entropy = self.summary_entropy_total / self.summary_entropy_count
+
+        return {
+            "runtime_s": time.time() - self.start_time,
+            "sample_count": self.summary_sample_count,
+            "face_observations": self.summary_face_observations,
+            "dominant_total": sum(self.summary_dominant_counts.values()),
+            "dominant_counts": dict(self.summary_dominant_counts),
+            "avg_distribution": avg_distribution,
+            "avg_faces": avg_faces,
+            "avg_entropy": avg_entropy,
+        }
 
     def on_frame(self):
         ret, frame = self.cap.read()
@@ -659,6 +823,13 @@ class EmotionQtWindow(QMainWindow):
             visible_emotions_data = last_emotions_data
             current_emotion_distribution = compute_normalized_emotion_distribution(last_emotions_data)
 
+        if (
+            current_emotion_distribution is not None
+            and self.emotion_updates != self.last_counted_emotion_update
+        ):
+            self.record_summary_sample(current_emotion_distribution, visible_emotions_data)
+            self.last_counted_emotion_update = self.emotion_updates
+
         visible_pose = None
         if (
             self.args.enable_pose
@@ -694,6 +865,7 @@ class EmotionQtWindow(QMainWindow):
             self.filtered_emotion_distribution,
             status_text,
         )
+        self.canvas.set_summary_stats(self.build_summary_stats())
         self.frame_count += 1
 
     def closeEvent(self, event):
